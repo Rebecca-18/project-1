@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="700" viewBox="0 0 1600 700" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="700" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B7C4FF"/>
+      <stop offset="1" stop-color="#99ACFF"/>
+    </linearGradient>
+    <radialGradient id="orbA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(360 220) rotate(20) scale(340 260)">
+      <stop stop-color="#000727" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#000727" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="orbB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1270 470) rotate(-10) scale(430 300)">
+      <stop stop-color="#000727" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#000727" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="700" fill="url(#bg)"/>
+  <rect width="1600" height="700" fill="url(#orbA)"/>
+  <rect width="1600" height="700" fill="url(#orbB)"/>
+  <path d="M0 540C180 480 320 520 480 570C650 625 850 650 1060 590C1250 536 1435 505 1600 560V700H0V540Z" fill="#000727" fill-opacity="0.2"/>
+  <path d="M0 605C190 560 380 590 560 635C735 678 930 690 1120 650C1320 610 1460 590 1600 624V700H0V605Z" fill="#000727" fill-opacity="0.32"/>
+</svg>

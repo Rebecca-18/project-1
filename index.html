@@ -3,448 +3,788 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TWICE Albums</title>
+    <title>Rebecca Rodriguez | Personal Website</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --main-bg: #99acff;
+            --accent: #000727;
+            --sidebar-width: 300px;
+            --sidebar-collapsed-width: 78px;
+            --panel-bg: rgba(255, 255, 255, 0.2);
+            --panel-border: rgba(0, 7, 39, 0.35);
+        }
+
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.35), transparent 45%),
+                        radial-gradient(circle at 85% 15%, rgba(0, 7, 39, 0.12), transparent 45%),
+                        linear-gradient(160deg, var(--main-bg) 0%, #b8c5ff 100%);
+            color: var(--accent);
+            font-family: "Libre Baskerville", serif;
             min-height: 100vh;
-            padding: 20px;
-            color: #333;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        body.dark {
+            --main-bg: #000727;
+            --accent: #99acff;
+            --panel-bg: rgba(153, 172, 255, 0.16);
+            --panel-border: rgba(153, 172, 255, 0.5);
         }
 
-        header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-            animation: fadeIn 0.8s ease-in;
+        .layout {
+            display: flex;
+            min-height: 100vh;
         }
 
-        header h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        .sidebar {
+            width: var(--sidebar-width);
+            background: color-mix(in srgb, var(--main-bg) 86%, #ffffff 14%);
+            border-right: 3px solid var(--accent);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: width 0.3s ease;
+            z-index: 10;
         }
 
-        header p {
-            font-size: 1.2em;
-            opacity: 0.9;
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
         }
 
-        .view {
+        .collapse-toggle {
+            width: 100%;
+            border: 2px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            padding: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 12px;
+            font-family: "Libre Baskerville", serif;
+        }
+
+        .first-section {
+            min-height: 74px;
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: auto auto auto 1fr;
+            align-items: center;
+            gap: 8px;
+            background: var(--panel-bg);
+        }
+
+        .first-section button,
+        .nav-button {
+            border: 2px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: "Libre Baskerville", serif;
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
+
+        .first-section button {
+            padding: 8px 10px;
+            font-size: 0.9rem;
+        }
+
+        .nav-button {
+            width: 100%;
+            flex: 1;
+            min-height: 80px;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.95rem;
+            background: var(--panel-bg);
+        }
+
+        .first-section button:hover,
+        .nav-button:hover,
+        .collapse-toggle:hover {
+            transform: translateY(-1px);
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+        }
+
+        .clock {
+            font-size: 0.95rem;
+            text-align: right;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .sidebar.collapsed .first-section {
+            grid-template-columns: 1fr;
+            gap: 6px;
+            justify-items: center;
+        }
+
+        .sidebar.collapsed .clock,
+        .sidebar.collapsed .nav-text,
+        .sidebar.collapsed .collapse-text {
             display: none;
-            animation: fadeIn 0.5s ease-in;
         }
 
-        .view.active {
+        .sidebar.collapsed .nav-button {
+            text-align: center;
+            padding: 10px 6px;
+            min-height: 78px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 34px clamp(18px, 4vw, 56px);
+        }
+
+        .section-block {
+            padding: 24px;
+            border: 2px solid var(--panel-border);
+            border-radius: 18px;
+            margin-bottom: 26px;
+            background: color-mix(in srgb, var(--panel-bg) 88%, transparent);
+            backdrop-filter: blur(1px);
+        }
+
+        .hero {
+            margin-bottom: 26px;
+            border: 2px solid var(--panel-border);
+            border-radius: 18px;
+            overflow: hidden;
+            background: color-mix(in srgb, var(--panel-bg) 88%, transparent);
+        }
+
+        .hero-copy {
+            padding: 24px 24px 14px;
+        }
+
+        .hero-tools {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .hero-tools input[type="file"] {
+            width: 100%;
+            font-family: "Libre Baskerville", serif;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            background: transparent;
+            padding: 8px;
+        }
+
+        .hero-tools button {
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--accent);
+            padding: 10px 14px;
+            cursor: pointer;
+            font-family: "Libre Baskerville", serif;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: min(28vh, 220px);
+            object-fit: cover;
+            border-top: 2px solid var(--panel-border);
             display: block;
         }
 
-        /* Albums View */
-        .albums-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+        .title-main {
+            font-family: "Cinzel", serif;
+            font-size: clamp(2rem, 6vw, 4.3rem);
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
 
-        .album-btn {
-            background: white;
+        .subheading {
+            font-size: 1.4rem;
+            margin-bottom: 14px;
+            text-transform: none;
+        }
+
+        .edit-box {
+            min-height: 190px;
+            border: 2px dashed var(--accent);
+            border-radius: 12px;
+            padding: 14px;
+            line-height: 1.6;
+            background: color-mix(in srgb, var(--main-bg) 84%, #ffffff 16%);
+            outline: none;
+        }
+
+        .edit-box:focus {
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+        }
+
+        .link-tool {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+        }
+
+        .link-tool input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--accent);
+            font-family: "Libre Baskerville", serif;
+        }
+
+        .link-tool button {
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--accent);
+            padding: 10px 14px;
+            cursor: pointer;
+            font-family: "Libre Baskerville", serif;
+        }
+
+        .saved-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--accent);
+            word-break: break-word;
+        }
+
+        .spotify-embed {
+            margin-top: 14px;
+            width: 100%;
             border: none;
             border-radius: 12px;
-            padding: 30px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            min-height: 152px;
         }
 
-        .album-btn:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .auth-gate {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
         }
 
-        .album-btn h3 {
-            font-size: 1.3em;
+        .auth-card {
+            width: min(460px, 100%);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            background: var(--main-bg);
+            color: var(--accent);
+            padding: 18px;
+        }
+
+        .auth-title {
+            font-size: 1.3rem;
             margin-bottom: 8px;
         }
 
-        .album-btn p {
-            font-size: 0.95em;
-            opacity: 0.7;
-        }
-
-        .album-btn:hover p {
-            opacity: 1;
-        }
-
-        /* Songs View */
-        .songs-container {
-            background: white;
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            animation: slideIn 0.4s ease-in;
-        }
-
-        .back-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1em;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-        }
-
-        .back-btn:hover {
-            background: #764ba2;
-            transform: translateX(-5px);
-        }
-
-        .album-title {
-            font-size: 2.2em;
-            margin-bottom: 15px;
-            color: #667eea;
-        }
-
-        .album-info {
-            font-size: 1.05em;
-            color: #666;
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
-
-        .songs-list {
-            list-style: none;
-        }
-
-        .song-item {
-            padding: 16px;
+        .auth-note {
+            font-size: 0.92rem;
             margin-bottom: 12px;
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            border-radius: 6px;
-            transition: all 0.3s ease;
+            line-height: 1.5;
+        }
+
+        .auth-card input {
+            width: 100%;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--accent);
+            padding: 10px;
+            margin-bottom: 10px;
+            font-family: "Libre Baskerville", serif;
+        }
+
+        .auth-actions {
             display: flex;
-            align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
 
-        .song-item:hover {
-            background: #e8eaf6;
-            transform: translateX(10px);
+        .auth-actions button {
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--accent);
+            padding: 10px 14px;
+            cursor: pointer;
+            font-family: "Libre Baskerville", serif;
         }
 
-        .song-number {
-            font-weight: bold;
-            color: #667eea;
-            font-size: 1.1em;
-            min-width: 30px;
+        .auth-msg {
+            min-height: 1.2em;
+            font-size: 0.9rem;
+            margin-top: 8px;
         }
 
-        .song-name {
-            flex: 1;
-            font-size: 1.05em;
-            color: #333;
+        .auth-gate.hidden {
+            display: none;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+        body.locked {
+            overflow: hidden;
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        body.locked .layout {
+            filter: blur(6px);
+            pointer-events: none;
+            user-select: none;
         }
 
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 2em;
+        @media (max-width: 900px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                box-shadow: 2px 0 16px rgba(0, 0, 0, 0.2);
             }
 
-            .albums-grid {
+            .main {
+                margin-left: calc(var(--sidebar-collapsed-width) + 10px);
+            }
+
+            .sidebar:not(.collapsed) + .main {
+                margin-left: calc(var(--sidebar-width) + 10px);
+            }
+
+            .hero-tools {
                 grid-template-columns: 1fr;
-            }
-
-            .songs-container {
-                padding: 20px;
-            }
-
-            .album-title {
-                font-size: 1.8em;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🎵 TWICE Albums 🎵</h1>
-            <p>Explore all albums and songs from K-pop group TWICE</p>
-        </header>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <button class="collapse-toggle" id="collapseBtn" aria-label="Collapse sidebar">
+                <span aria-hidden="true">☰</span>
+                <span class="collapse-text"> Collapse</span>
+            </button>
 
-        <!-- Albums View -->
-        <div id="albumsView" class="view active">
-            <div class="albums-grid" id="albumsGrid"></div>
-        </div>
-
-        <!-- Songs View -->
-        <div id="songsView" class="view">
-            <div class="songs-container">
-                <button class="back-btn" onclick="goBack()">← Back to Albums</button>
-                <h2 class="album-title" id="albumTitle"></h2>
-                <div class="album-info" id="albumInfo"></div>
-                <ul class="songs-list" id="songsList"></ul>
+            <div class="first-section">
+                <button id="homeBtn" aria-label="Go to home">Home</button>
+                <button id="themeBtn" aria-label="Toggle dark mode">Dark</button>
+                <button id="lockBtn" aria-label="Lock website">Lock</button>
+                <div class="clock" id="clock">--:-- --</div>
             </div>
+
+            <button class="nav-button" data-target="interests">
+                <span class="nav-text">Interests and Hobbies</span>
+            </button>
+            <button class="nav-button" data-target="favorites">
+                <span class="nav-text">Favorite Things</span>
+            </button>
+            <button class="nav-button" data-target="proud">
+                <span class="nav-text">Something I'm Proud Of</span>
+            </button>
+            <button class="nav-button" data-target="goal">
+                <span class="nav-text">A Goal or Dream</span>
+            </button>
+            <button class="nav-button" data-target="findme">
+                <span class="nav-text">Find Me</span>
+            </button>
+        </aside>
+
+        <main class="main" id="home">
+            <section class="hero" aria-label="Hero section">
+                <div class="hero-copy">
+                    <h1 class="title-main">REBECCA RODRIGUEZ</h1>
+                    <div class="hero-tools">
+                        <input id="heroUpload" type="file" accept="image/*" aria-label="Upload a new hero image">
+                        <button id="heroReset" type="button">Use Default</button>
+                    </div>
+                </div>
+                <img class="hero-image" id="heroImage" src="pictures/hero-image.svg" alt="Hero image">
+            </section>
+
+            <section class="section-block">
+                <h2 class="subheading">About Me</h2>
+                <div class="edit-box" id="aboutBox" contenteditable="true" spellcheck="true">
+                    Write your intro here.
+                </div>
+            </section>
+
+            <section class="section-block" id="interests">
+                <h2 class="subheading">Interests and Hobbies</h2>
+                <div class="edit-box" id="interestsBox" contenteditable="true" spellcheck="true">
+                    Share your interests and hobbies here.
+                </div>
+                <div class="link-tool">
+                    <input id="spotifyInput" type="url" placeholder="Paste a Spotify playlist link">
+                    <button id="spotifySave">Save Playlist</button>
+                </div>
+                <a class="saved-link" id="spotifyLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+                <iframe class="spotify-embed" id="spotifyEmbed" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+            </section>
+
+            <section class="section-block" id="favorites">
+                <h2 class="subheading">Favorite Things</h2>
+                <div class="edit-box" id="favoritesBox" contenteditable="true" spellcheck="true">
+                    Add your favorite things here.
+                </div>
+            </section>
+
+            <section class="section-block" id="proud">
+                <h2 class="subheading">Something I'm Proud Of</h2>
+                <div class="edit-box" id="proudBox" contenteditable="true" spellcheck="true">
+                    Write something you are proud of here.
+                </div>
+            </section>
+
+            <section class="section-block" id="goal">
+                <h2 class="subheading">A Goal or Dream</h2>
+                <div class="edit-box" id="goalBox" contenteditable="true" spellcheck="true">
+                    Describe your goal or dream here.
+                </div>
+            </section>
+
+            <section class="section-block" id="findme">
+                <h2 class="subheading">Find Me</h2>
+                <div class="edit-box" id="findmeBox" contenteditable="true" spellcheck="true">
+                    Add details about where people can find you.
+                </div>
+                <div class="link-tool">
+                    <input id="instagramInput" type="url" placeholder="Paste your Instagram profile link">
+                    <button id="instagramSave">Save Instagram</button>
+                </div>
+                <a class="saved-link" id="instagramLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+            </section>
+        </main>
+    </div>
+
+    <div class="auth-gate" id="authGate" aria-live="polite">
+        <div class="auth-card">
+            <h2 class="auth-title" id="authTitle">Owner Access</h2>
+            <p class="auth-note" id="authNote"></p>
+            <input id="passInput" type="password" placeholder="Passcode">
+            <input id="confirmInput" type="password" placeholder="Confirm passcode">
+            <div class="auth-actions">
+                <button id="authSubmit" type="button"></button>
+            </div>
+            <p class="auth-msg" id="authMsg"></p>
         </div>
     </div>
 
     <script>
-        const albums = [
-            {
-                id: 1,
-                name: "The Story Begins",
-                year: 2015,
-                songs: [
-                    "Like OOH-AHH",
-                    "Do not touch",
-                    "Precious love",
-                    "I'm Gonna Drink Chu",
-                    "Candy pop",
-                    "Going Crazy",
-                    "Brand New Girl",
-                    "The Story Begins"
-                ]
-            },
-            {
-                id: 2,
-                name: "Page Two",
-                year: 2016,
-                songs: [
-                    "Cheer Up",
-                    "Jelly Jelly",
-                    "Whatta Man",
-                    "I'm Gonna Drink Chu",
-                    "Next Page",
-                    "Pit a Pat",
-                    "1, 2, 3",
-                    "Page Two"
-                ]
-            },
-            {
-                id: 3,
-                name: "Twicetagram",
-                year: 2017,
-                songs: [
-                    "Likey",
-                    "Turtle",
-                    "One Day One Night",
-                    "Rainbow",
-                    "Dejavu",
-                    "Someone Like Me",
-                    "Notice Me",
-                    "Twicetagram"
-                ]
-            },
-            {
-                id: 4,
-                name: "What is Love?",
-                year: 2018,
-                songs: [
-                    "What is Love?",
-                    "Multicolour",
-                    "Sweet Talker",
-                    "Sunset",
-                    "Dream Day",
-                    "Purple",
-                    "Say Yes",
-                    "Puppy",
-                    "What is Love? (Inst.)"
-                ]
-            },
-            {
-                id: 5,
-                name: "Feel Special",
-                year: 2019,
-                songs: [
-                    "Feel Special",
-                    "Love Foolish",
-                    "Get Loud",
-                    "Oxygen",
-                    "Fancy",
-                    "U R",
-                    "Tick Tock"
-                ]
-            },
-            {
-                id: 6,
-                name: "More & More",
-                year: 2020,
-                songs: [
-                    "More & More",
-                    "Scorpio",
-                    "Tamashi",
-                    "Better",
-                    "My Drive",
-                    "Don't Give It to Me",
-                    "Make Me Go"
-                ]
-            },
-            {
-                id: 7,
-                name: "Eyes Wide Open",
-                year: 2020,
-                songs: [
-                    "I Can't Stop Me",
-                    "Loco",
-                    "Hell in Heaven",
-                    "Depend on You",
-                    "Shot Clock",
-                    "Fireworks",
-                    "bring it back"
-                ]
-            },
-            {
-                id: 8,
-                name: "Formula of Love: O+T=<3",
-                year: 2021,
-                songs: [
-                    "Set Me Free",
-                    "Scientist",
-                    "Moonlight",
-                    "Espresso",
-                    "Push & Pull",
-                    "Gone",
-                    "Trouble",
-                    "Icon"
-                ]
-            },
-            {
-                id: 9,
-                name: "Between 1&2",
-                year: 2022,
-                songs: [
-                    "Talk that Talk",
-                    "Allure",
-                    "Chill",
-                    "Callme",
-                    "Another Dream",
-                    "Better Knowing You",
-                    "Time to Shine",
-                    "Basics"
-                ]
-            },
-            {
-                id: 10,
-                name: "Ready to Be",
-                year: 2023,
-                songs: [
-                    "SET ME FREE",
-                    "Ready to Be",
-                    "Breakthrough",
-                    "Candy",
-                    "Movement",
-                    "Queen of Hearts",
-                    "Come Back Home",
-                    "I Got It Good",
-                    "Dangerous"
-                ]
-            },
-            {
-                id: 11,
-                name: "With YOU-th",
-                year: 2024,
-                songs: [
-                    "With YOU",
-                    "Dangerous",
-                    "Petrichor",
-                    "Queen",
-                    "Night & Day",
-                    "Eyes on Me",
-                    "Trouble"
-                ]
+        const sidebar = document.getElementById("sidebar");
+        const collapseBtn = document.getElementById("collapseBtn");
+        const homeBtn = document.getElementById("homeBtn");
+        const themeBtn = document.getElementById("themeBtn");
+        const lockBtn = document.getElementById("lockBtn");
+        const clock = document.getElementById("clock");
+        const heroImage = document.getElementById("heroImage");
+        const heroUpload = document.getElementById("heroUpload");
+        const heroReset = document.getElementById("heroReset");
+        const defaultHeroImage = "pictures/hero-image.svg";
+        const heroStorageKey = "personalSiteHeroImage";
+        const authGate = document.getElementById("authGate");
+        const authTitle = document.getElementById("authTitle");
+        const authNote = document.getElementById("authNote");
+        const passInput = document.getElementById("passInput");
+        const confirmInput = document.getElementById("confirmInput");
+        const authSubmit = document.getElementById("authSubmit");
+        const authMsg = document.getElementById("authMsg");
+        const passHashKey = "personalSiteOwnerPassHash";
+        const unlockSessionKey = "personalSiteUnlocked";
+        const contentKeys = {
+            aboutBox: "personalSiteAbout",
+            interestsBox: "personalSiteInterests",
+            favoritesBox: "personalSiteFavorites",
+            proudBox: "personalSiteProud",
+            goalBox: "personalSiteGoal",
+            findmeBox: "personalSiteFindMe"
+        };
+        const spotifyLinkStorageKey = "personalSiteSpotifyLink";
+        const instagramLinkStorageKey = "personalSiteInstagramLink";
+
+        function setEditableState(enabled) {
+            document.querySelectorAll(".edit-box").forEach((box) => {
+                box.contentEditable = enabled ? "true" : "false";
+            });
+
+            [
+                collapseBtn,
+                homeBtn,
+                themeBtn,
+                lockBtn,
+                ...document.querySelectorAll(".nav-button"),
+                heroUpload,
+                heroReset,
+                document.getElementById("spotifyInput"),
+                document.getElementById("spotifySave"),
+                document.getElementById("instagramInput"),
+                document.getElementById("instagramSave")
+            ].forEach((el) => {
+                el.disabled = !enabled;
+            });
+        }
+
+        function lockSite() {
+            sessionStorage.removeItem(unlockSessionKey);
+            document.body.classList.add("locked");
+            authGate.classList.remove("hidden");
+            setEditableState(false);
+            setupAuthUi();
+            passInput.value = "";
+            confirmInput.value = "";
+            authMsg.textContent = "";
+            passInput.focus();
+        }
+
+        function unlockSite() {
+            sessionStorage.setItem(unlockSessionKey, "yes");
+            document.body.classList.remove("locked");
+            authGate.classList.add("hidden");
+            setEditableState(true);
+        }
+
+        async function hashPass(value) {
+            const data = new TextEncoder().encode(value);
+            const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+            return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
+        }
+
+        function setupAuthUi() {
+            const hasPass = Boolean(localStorage.getItem(passHashKey));
+            if (hasPass) {
+                authTitle.textContent = "Owner Access";
+                authNote.textContent = "Enter your passcode to view and edit your private website content.";
+                authSubmit.textContent = "Unlock";
+                confirmInput.style.display = "none";
+            } else {
+                authTitle.textContent = "Set Owner Passcode";
+                authNote.textContent = "Create a passcode. Only this passcode unlocks your content and editing.";
+                authSubmit.textContent = "Create Passcode";
+                confirmInput.style.display = "block";
             }
-        ];
+        }
 
-        // Initialize albums grid
-        function initializeAlbums() {
-            const grid = document.getElementById('albumsGrid');
-            grid.innerHTML = '';
-            
-            albums.forEach(album => {
-                const button = document.createElement('button');
-                button.className = 'album-btn';
-                button.innerHTML = `
-                    <h3>${album.name}</h3>
-                    <p>${album.year}</p>
-                `;
-                button.onclick = () => showAlbumSongs(album.id);
-                grid.appendChild(button);
+        function saveEditableContent() {
+            Object.keys(contentKeys).forEach((boxId) => {
+                const el = document.getElementById(boxId);
+                localStorage.setItem(contentKeys[boxId], el.innerHTML);
             });
         }
 
-        // Show songs for selected album
-        function showAlbumSongs(albumId) {
-            const album = albums.find(a => a.id === albumId);
-            if (!album) return;
-
-            document.getElementById('albumTitle').textContent = album.name;
-            document.getElementById('albumInfo').innerHTML = `
-                <strong>Total Tracks:</strong> ${album.songs.length}
-            `;
-
-            const songsList = document.getElementById('songsList');
-            songsList.innerHTML = '';
-            album.songs.forEach((song, index) => {
-                const li = document.createElement('li');
-                li.className = 'song-item';
-                li.innerHTML = `
-                    <span class="song-number">${index + 1}</span>
-                    <span class="song-name">${song}</span>
-                `;
-                songsList.appendChild(li);
+        function restoreEditableContent() {
+            Object.keys(contentKeys).forEach((boxId) => {
+                const el = document.getElementById(boxId);
+                const saved = localStorage.getItem(contentKeys[boxId]);
+                if (saved) {
+                    el.innerHTML = saved;
+                }
+                el.addEventListener("input", saveEditableContent);
             });
-
-            // Switch view
-            document.getElementById('albumsView').classList.remove('active');
-            document.getElementById('songsView').classList.add('active');
         }
 
-        // Go back to albums list
-        function goBack() {
-            document.getElementById('songsView').classList.remove('active');
-            document.getElementById('albumsView').classList.add('active');
+        function restoreSavedLink(storageKey, inputId, linkId, labelText, onUrl) {
+            const savedUrl = localStorage.getItem(storageKey) || "";
+            if (!savedUrl) {
+                return;
+            }
+            document.getElementById(inputId).value = savedUrl;
+            const url = setWorkingLink(inputId, linkId, labelText);
+            if (onUrl) {
+                onUrl(url);
+            }
         }
 
-        // Initialize on page load
-        window.addEventListener('load', initializeAlbums);
+        function updateClock() {
+            const now = new Date();
+            clock.textContent = now.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true
+            });
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        collapseBtn.addEventListener("click", () => {
+            sidebar.classList.toggle("collapsed");
+            const expanded = !sidebar.classList.contains("collapsed");
+            collapseBtn.setAttribute("aria-label", expanded ? "Collapse sidebar" : "Expand sidebar");
+            collapseBtn.querySelector(".collapse-text").textContent = expanded ? " Collapse" : " Expand";
+        });
+
+        homeBtn.addEventListener("click", () => {
+            document.getElementById("home").scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+
+        themeBtn.addEventListener("click", () => {
+            document.body.classList.toggle("dark");
+            themeBtn.textContent = document.body.classList.contains("dark") ? "Light" : "Dark";
+        });
+
+        document.querySelectorAll(".nav-button").forEach((button) => {
+            button.addEventListener("click", () => {
+                const target = document.getElementById(button.dataset.target);
+                if (target) {
+                    target.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            });
+        });
+
+        function setWorkingLink(inputId, linkId, labelText) {
+            const input = document.getElementById(inputId);
+            const link = document.getElementById(linkId);
+            const value = input.value.trim();
+
+            if (!value) {
+                link.textContent = "";
+                link.removeAttribute("href");
+                return "";
+            }
+
+            link.href = value;
+            link.textContent = labelText + ": " + value;
+            return value;
+        }
+
+        function spotifyEmbedUrl(url) {
+            const match = url.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
+            if (!match) {
+                return "";
+            }
+            return "https://open.spotify.com/embed/playlist/" + match[1] + "?utm_source=generator";
+        }
+
+        document.getElementById("spotifySave").addEventListener("click", () => {
+            const url = setWorkingLink("spotifyInput", "spotifyLink", "Spotify Playlist");
+            const embed = document.getElementById("spotifyEmbed");
+            const embedUrl = spotifyEmbedUrl(url);
+            embed.src = embedUrl;
+            embed.style.display = embedUrl ? "block" : "none";
+            localStorage.setItem(spotifyLinkStorageKey, url);
+        });
+
+        document.getElementById("instagramSave").addEventListener("click", () => {
+            const url = setWorkingLink("instagramInput", "instagramLink", "Instagram");
+            localStorage.setItem(instagramLinkStorageKey, url);
+        });
+
+        document.getElementById("spotifyEmbed").style.display = "none";
+
+        const savedHeroImage = localStorage.getItem(heroStorageKey);
+        if (savedHeroImage) {
+            heroImage.src = savedHeroImage;
+        }
+
+        heroUpload.addEventListener("change", (event) => {
+            const file = event.target.files && event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                const imageData = typeof reader.result === "string" ? reader.result : "";
+                if (!imageData) {
+                    return;
+                }
+                heroImage.src = imageData;
+                localStorage.setItem(heroStorageKey, imageData);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        heroReset.addEventListener("click", () => {
+            localStorage.removeItem(heroStorageKey);
+            heroImage.src = defaultHeroImage;
+            heroUpload.value = "";
+        });
+
+        restoreEditableContent();
+        restoreSavedLink(
+            spotifyLinkStorageKey,
+            "spotifyInput",
+            "spotifyLink",
+            "Spotify Playlist",
+            (url) => {
+                const embed = document.getElementById("spotifyEmbed");
+                const embedUrl = spotifyEmbedUrl(url);
+                embed.src = embedUrl;
+                embed.style.display = embedUrl ? "block" : "none";
+            }
+        );
+        restoreSavedLink(instagramLinkStorageKey, "instagramInput", "instagramLink", "Instagram");
+
+        setupAuthUi();
+
+        authSubmit.addEventListener("click", async () => {
+            const pass = passInput.value.trim();
+            const confirm = confirmInput.value.trim();
+            const hasPass = Boolean(localStorage.getItem(passHashKey));
+
+            if (!pass) {
+                authMsg.textContent = "Passcode is required.";
+                return;
+            }
+
+            if (!hasPass) {
+                if (pass.length < 4) {
+                    authMsg.textContent = "Use at least 4 characters for your passcode.";
+                    return;
+                }
+                if (pass !== confirm) {
+                    authMsg.textContent = "Passcodes do not match.";
+                    return;
+                }
+                const createdHash = await hashPass(pass);
+                localStorage.setItem(passHashKey, createdHash);
+                unlockSite();
+                authMsg.textContent = "";
+                return;
+            }
+
+            const inputHash = await hashPass(pass);
+            const savedHash = localStorage.getItem(passHashKey);
+            if (inputHash !== savedHash) {
+                authMsg.textContent = "Incorrect passcode.";
+                return;
+            }
+
+            unlockSite();
+            authMsg.textContent = "";
+        });
+
+        lockBtn.addEventListener("click", lockSite);
+
+        if (sessionStorage.getItem(unlockSessionKey) === "yes") {
+            unlockSite();
+        } else {
+            lockSite();
+        }
     </script>
 </body>
 </html>
