@@ -30,190 +30,231 @@
         body {
             background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.35), transparent 45%),
                         radial-gradient(circle at 85% 15%, rgba(0, 7, 39, 0.12), transparent 45%),
-                        <script>
-                            const OWNER_PASSWORD = "image-theory-2022";
-                            const sidebar = document.getElementById("sidebar");
-                            const collapseBtn = document.getElementById("collapseBtn");
-                            const menuToggle = document.getElementById("menuToggle");
-                            const homeBtn = document.getElementById("homeBtn");
-                            const themeBtn = document.getElementById("themeBtn");
-                            const lockBtn = document.getElementById("lockBtn");
-                            const clock = document.getElementById("clock");
+                        linear-gradient(160deg, var(--main-bg) 0%, #b8c5ff 100%);
+            color: var(--accent);
+            font-family: "Libre Baskerville", serif;
+            min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
 
-                            const contentKeys = {
-                                aboutBox: "personalSiteAbout",
-                                interestsBox: "personalSiteInterests",
-                                favoritesBox: "personalSiteFavorites",
-                                proudBox: "personalSiteProud",
-                                goalBox: "personalSiteGoal",
-                                findmeBox: "personalSiteFindMe"
-                            };
+        body.dark {
+            --main-bg: #000727;
+            --accent: #99acff;
+            --panel-bg: rgba(153, 172, 255, 0.16);
+            --panel-border: rgba(153, 172, 255, 0.5);
+        }
 
-                            const spotifyInput = document.getElementById("spotifyInput");
-                            const spotifySave = document.getElementById("spotifySave");
-                            const spotifyLink = document.getElementById("spotifyLink");
-                            const spotifyEmbed = document.getElementById("spotifyEmbed");
-                            const instagramInput = document.getElementById("instagramInput");
-                            const instagramSave = document.getElementById("instagramSave");
-                            const instagramLink = document.getElementById("instagramLink");
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
 
-                            const spotifyLinkStorageKey = "personalSiteSpotifyLink";
-                            const instagramLinkStorageKey = "personalSiteInstagramLink";
+        .sidebar {
+            width: var(--sidebar-width);
+            background: color-mix(in srgb, var(--main-bg) 86%, #ffffff 14%);
+            border-right: 3px solid var(--accent);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: width 0.3s ease;
+            z-index: 10;
+        }
 
-                            function updateClock() {
-                                const now = new Date();
-                                clock.textContent = now.toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    second: "2-digit",
-                                    hour12: true
-                                });
-                            }
+        .sidebar.collapsed {
+            width: 0;
+            padding: 0;
+            border-right: none;
+            overflow: hidden;
+        }
 
-                            function setEditorMode(enabled) {
-                                document.querySelectorAll(".edit-box").forEach((box) => {
-                                    box.contentEditable = enabled ? "true" : "false";
-                                    box.classList.toggle("editing", enabled);
-                                });
+        .menu-toggle {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 15;
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--accent);
+            background: color-mix(in srgb, var(--main-bg) 86%, #ffffff 14%);
+            color: var(--accent);
+            cursor: pointer;
+            border-radius: 10px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: transform 0.15s ease;
+        }
 
-                                document.querySelectorAll(".link-tool").forEach((tool) => {
-                                    tool.classList.toggle("editing", enabled);
-                                });
+        .menu-toggle:hover {
+            transform: translateY(-1px);
+        }
 
-                                lockBtn.textContent = enabled ? "End Edit" : "Edit Site";
-                            }
+        .sidebar.collapsed + .main .menu-toggle {
+            display: flex;
+        }
 
-                            function promptForEditorToggle() {
-                                const password = window.prompt("Enter password:");
-                                if (password === null) {
-                                    return;
-                                }
+        .collapse-toggle {
+            width: 100%;
+            border: 2px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            padding: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 12px;
+            font-family: "Libre Baskerville", serif;
+        }
 
-                                if (password !== OWNER_PASSWORD) {
-                                    window.alert("Incorrect password.");
-                                    return;
-                                }
+        .first-section {
+            min-height: 74px;
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: auto auto auto 1fr;
+            align-items: center;
+            gap: 8px;
+            background: var(--panel-bg);
+        }
 
-                                const isEditing = lockBtn.textContent === "End Edit";
-                                setEditorMode(!isEditing);
-                            }
+        .first-section button,
+        .nav-button {
+            border: 2px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: "Libre Baskerville", serif;
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
 
-                            function saveEditableContent() {
-                                Object.keys(contentKeys).forEach((boxId) => {
-                                    const el = document.getElementById(boxId);
-                                    localStorage.setItem(contentKeys[boxId], el.innerHTML);
-                                });
-                            }
+        .first-section button {
+            padding: 8px 10px;
+            font-size: 0.9rem;
+        }
 
-                            function restoreEditableContent() {
-                                Object.keys(contentKeys).forEach((boxId) => {
-                                    const el = document.getElementById(boxId);
-                                    const saved = localStorage.getItem(contentKeys[boxId]);
-                                    if (saved) {
-                                        el.innerHTML = saved;
-                                    }
-                                    el.addEventListener("input", saveEditableContent);
-                                });
-                            }
+        .nav-button {
+            width: 100%;
+            flex: 1;
+            min-height: 80px;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.95rem;
+            background: var(--panel-bg);
+        }
 
-                            function setWorkingLink(inputEl, linkEl, labelText) {
-                                const value = inputEl.value.trim();
-                                if (!value) {
-                                    linkEl.textContent = "";
-                                    linkEl.removeAttribute("href");
-                                    return "";
-                                }
-                                linkEl.href = value;
-                                linkEl.textContent = labelText + ": " + value;
-                                return value;
-                            }
+        .first-section button:hover,
+        .nav-button:hover,
+        .collapse-toggle:hover {
+            transform: translateY(-1px);
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+        }
 
-                            function spotifyEmbedUrl(url) {
-                                const match = url.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
-                                if (!match) {
-                                    return "";
-                                }
-                                return "https://open.spotify.com/embed/playlist/" + match[1] + "?utm_source=generator";
-                            }
+        .clock {
+            font-size: 0.95rem;
+            text-align: right;
+            font-weight: 700;
+            white-space: nowrap;
+        }
 
-                            function restoreSavedLink(storageKey, inputEl, linkEl, labelText, onUrl) {
-                                const savedUrl = localStorage.getItem(storageKey) || "";
-                                if (!savedUrl) {
-                                    return;
-                                }
-                                inputEl.value = savedUrl;
-                                const url = setWorkingLink(inputEl, linkEl, labelText);
-                                if (onUrl) {
-                                    onUrl(url);
-                                }
-                            }
+        .sidebar.collapsed .first-section {
+            grid-template-columns: 1fr;
+            gap: 6px;
+            justify-items: center;
+        }
 
-                            collapseBtn.addEventListener("click", () => {
-                                sidebar.classList.add("collapsed");
-                            });
+        .sidebar.collapsed .clock,
+        .sidebar.collapsed .nav-text,
+        .sidebar.collapsed .collapse-text {
+            display: none;
+        }
 
-                            menuToggle.addEventListener("click", () => {
-                                sidebar.classList.remove("collapsed");
-                            });
+        .sidebar.collapsed .nav-button {
+            text-align: center;
+            padding: 10px 6px;
+            min-height: 78px;
+        }
 
-                            homeBtn.addEventListener("click", () => {
-                                document.getElementById("home").scrollIntoView({ behavior: "smooth", block: "start" });
-                            });
+        .main {
+            flex: 1;
+            padding: 34px clamp(18px, 4vw, 56px);
+        }
 
-                            themeBtn.addEventListener("click", () => {
-                                document.body.classList.toggle("dark");
-                                themeBtn.textContent = document.body.classList.contains("dark") ? "Light" : "Dark";
-                            });
+        .section-block {
+            padding: 24px;
+            border: 2px solid var(--panel-border);
+            border-radius: 18px;
+            margin-bottom: 26px;
+            background: color-mix(in srgb, var(--panel-bg) 88%, transparent);
+            backdrop-filter: blur(1px);
+        }
 
-                            document.querySelectorAll(".nav-button").forEach((button) => {
-                                button.addEventListener("click", () => {
-                                    const target = document.getElementById(button.dataset.target);
-                                    if (target) {
-                                        target.scrollIntoView({ behavior: "smooth", block: "start" });
-                                    }
-                                });
-                            });
+        .hero {
+            margin-bottom: 26px;
+            border: 2px solid var(--panel-border);
+            border-radius: 18px;
+            overflow: hidden;
+            background: color-mix(in srgb, var(--panel-bg) 88%, transparent);
+        }
 
-                            spotifySave.addEventListener("click", () => {
-                                const url = setWorkingLink(spotifyInput, spotifyLink, "Spotify Playlist");
-                                const embedUrl = spotifyEmbedUrl(url);
-                                spotifyEmbed.src = embedUrl;
-                                spotifyEmbed.style.display = embedUrl ? "block" : "none";
-                                localStorage.setItem(spotifyLinkStorageKey, url);
-                            });
+        .hero-copy {
+            padding: 24px;
+        }
 
-                            instagramSave.addEventListener("click", () => {
-                                const url = setWorkingLink(instagramInput, instagramLink, "Instagram");
-                                localStorage.setItem(instagramLinkStorageKey, url);
-                            });
+        .hero-image {
+            width: 100%;
+            height: min(28vh, 220px);
+            object-fit: cover;
+            border-top: 2px solid var(--panel-border);
+            display: block;
+        }
 
-                            spotifyInput.addEventListener("input", () => {
-                                localStorage.setItem(spotifyLinkStorageKey, spotifyInput.value.trim());
-                            });
+        .title-main {
+            font-family: "Cinzel", serif;
+            font-size: clamp(2rem, 6vw, 4.3rem);
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
 
-                            instagramInput.addEventListener("input", () => {
-                                localStorage.setItem(instagramLinkStorageKey, instagramInput.value.trim());
-                            });
+        .subheading {
+            font-size: 1.4rem;
+            margin-bottom: 14px;
+            text-transform: none;
+        }
 
-                            lockBtn.addEventListener("click", promptForEditorToggle);
+        .edit-box {
+            min-height: 190px;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            line-height: 1.6;
+            background: transparent;
+            outline: none;
+        }
 
-                            updateClock();
-                            setInterval(updateClock, 1000);
+        .edit-box:focus {
+            box-shadow: none;
+        }
 
-                            spotifyEmbed.style.display = "none";
-                            restoreEditableContent();
-                            restoreSavedLink(spotifyLinkStorageKey, spotifyInput, spotifyLink, "Spotify Playlist", (url) => {
-                                const embedUrl = spotifyEmbedUrl(url);
-                                spotifyEmbed.src = embedUrl;
-                                spotifyEmbed.style.display = embedUrl ? "block" : "none";
-                            });
-                            restoreSavedLink(instagramLinkStorageKey, instagramInput, instagramLink, "Instagram");
+        .edit-box.editing {
+            border: 2px dashed var(--accent);
+            background: color-mix(in srgb, var(--main-bg) 84%, #ffffff 16%);
+        }
 
-                            // Start in viewer mode each load.
-                            setEditorMode(false);
-                        </script>
-                    </body>
-                    </html>
+        .edit-box.editing:focus {
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+        }
+
+        .link-tool {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: 1fr auto;
             gap: 10px;
         }
 
@@ -260,83 +301,6 @@
             min-height: 152px;
         }
 
-        .auth-gate {
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-
-        .auth-card {
-            width: min(460px, 100%);
-            border: 2px solid var(--accent);
-            border-radius: 16px;
-            background: var(--main-bg);
-            color: var(--accent);
-            padding: 18px;
-        }
-
-        .auth-title {
-            font-size: 1.3rem;
-            margin-bottom: 8px;
-        }
-
-        .auth-note {
-            font-size: 0.92rem;
-            margin-bottom: 12px;
-            line-height: 1.5;
-        }
-
-        .auth-card input {
-            width: 100%;
-            border: 2px solid var(--accent);
-            border-radius: 10px;
-            background: transparent;
-            color: var(--accent);
-            padding: 10px;
-            margin-bottom: 10px;
-            font-family: "Libre Baskerville", serif;
-        }
-
-        .auth-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .auth-actions button {
-            border: 2px solid var(--accent);
-            border-radius: 10px;
-            background: transparent;
-            color: var(--accent);
-            padding: 10px 14px;
-            cursor: pointer;
-            font-family: "Libre Baskerville", serif;
-        }
-
-        .auth-msg {
-            min-height: 1.2em;
-            font-size: 0.9rem;
-            margin-top: 8px;
-        }
-
-        .auth-gate.hidden {
-            display: none;
-        }
-
-    body.editor-locked {
-            overflow: hidden;
-        }
-
-        body.editor-locked .layout {
-            filter: blur(6px);
-            pointer-events: none;
-            user-select: none;
-        }
-
         @media (max-width: 900px) {
             .sidebar {
                 position: fixed;
@@ -346,7 +310,7 @@
             }
 
             .main {
-                margin-left: calc(var(--sidebar-collapsed-width) + 10px);
+                margin-left: 10px;
             }
 
             .sidebar:not(.collapsed) + .main {
@@ -388,7 +352,7 @@
         </aside>
 
         <main class="main" id="home">
-                        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar menu">☰</button>
+            <button class="menu-toggle" id="menuToggle" aria-label="Open sidebar menu">☰</button>
             <section class="hero" aria-label="Hero section">
                 <div class="hero-copy">
                     <h1 class="title-main">REBECCA RODRIGUEZ</h1>
@@ -461,15 +425,6 @@
         const lockBtn = document.getElementById("lockBtn");
         const clock = document.getElementById("clock");
 
-        const contentKeys = {
-            aboutBox: "personalSiteAbout",
-            interestsBox: "personalSiteInterests",
-            favoritesBox: "personalSiteFavorites",
-            proudBox: "personalSiteProud",
-            goalBox: "personalSiteGoal",
-            findmeBox: "personalSiteFindMe"
-        };
-
         const spotifyInput = document.getElementById("spotifyInput");
         const spotifySave = document.getElementById("spotifySave");
         const spotifyLink = document.getElementById("spotifyLink");
@@ -478,18 +433,16 @@
         const instagramSave = document.getElementById("instagramSave");
         const instagramLink = document.getElementById("instagramLink");
 
+        const contentKeys = {
+            aboutBox: "personalSiteAbout",
+            interestsBox: "personalSiteInterests",
+            favoritesBox: "personalSiteFavorites",
+            proudBox: "personalSiteProud",
+            goalBox: "personalSiteGoal",
+            findmeBox: "personalSiteFindMe"
+        };
         const spotifyLinkStorageKey = "personalSiteSpotifyLink";
         const instagramLinkStorageKey = "personalSiteInstagramLink";
-
-        function updateClock() {
-            const now = new Date();
-            clock.textContent = now.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: true
-            });
-        }
 
         function setEditorMode(enabled) {
             document.querySelectorAll(".edit-box").forEach((box) => {
@@ -537,26 +490,6 @@
             });
         }
 
-        function setWorkingLink(inputEl, linkEl, labelText) {
-            const value = inputEl.value.trim();
-            if (!value) {
-                linkEl.textContent = "";
-                linkEl.removeAttribute("href");
-                return "";
-            }
-            linkEl.href = value;
-            linkEl.textContent = labelText + ": " + value;
-            return value;
-        }
-
-        function spotifyEmbedUrl(url) {
-            const match = url.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
-            if (!match) {
-                return "";
-            }
-            return "https://open.spotify.com/embed/playlist/" + match[1] + "?utm_source=generator";
-        }
-
         function restoreSavedLink(storageKey, inputEl, linkEl, labelText, onUrl) {
             const savedUrl = localStorage.getItem(storageKey) || "";
             if (!savedUrl) {
@@ -568,6 +501,19 @@
                 onUrl(url);
             }
         }
+
+        function updateClock() {
+            const now = new Date();
+            clock.textContent = now.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true
+            });
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
 
         collapseBtn.addEventListener("click", () => {
             sidebar.classList.add("collapsed");
@@ -595,6 +541,28 @@
             });
         });
 
+        function setWorkingLink(inputEl, linkEl, labelText) {
+            const value = inputEl.value.trim();
+
+            if (!value) {
+                linkEl.textContent = "";
+                linkEl.removeAttribute("href");
+                return "";
+            }
+
+            linkEl.href = value;
+            linkEl.textContent = labelText + ": " + value;
+            return value;
+        }
+
+        function spotifyEmbedUrl(url) {
+            const match = url.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
+            if (!match) {
+                return "";
+            }
+            return "https://open.spotify.com/embed/playlist/" + match[1] + "?utm_source=generator";
+        }
+
         spotifySave.addEventListener("click", () => {
             const url = setWorkingLink(spotifyInput, spotifyLink, "Spotify Playlist");
             const embedUrl = spotifyEmbedUrl(url);
@@ -618,16 +586,20 @@
 
         lockBtn.addEventListener("click", promptForEditorToggle);
 
-        updateClock();
-        setInterval(updateClock, 1000);
-
         spotifyEmbed.style.display = "none";
+
         restoreEditableContent();
-        restoreSavedLink(spotifyLinkStorageKey, spotifyInput, spotifyLink, "Spotify Playlist", (url) => {
-            const embedUrl = spotifyEmbedUrl(url);
-            spotifyEmbed.src = embedUrl;
-            spotifyEmbed.style.display = embedUrl ? "block" : "none";
-        });
+        restoreSavedLink(
+            spotifyLinkStorageKey,
+            spotifyInput,
+            spotifyLink,
+            "Spotify Playlist",
+            (url) => {
+                const embedUrl = spotifyEmbedUrl(url);
+                spotifyEmbed.src = embedUrl;
+                spotifyEmbed.style.display = embedUrl ? "block" : "none";
+            }
+        );
         restoreSavedLink(instagramLinkStorageKey, instagramInput, instagramLink, "Instagram");
 
         setEditorMode(false);
