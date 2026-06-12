@@ -65,7 +65,36 @@
         }
 
         .sidebar.collapsed {
-            width: var(--sidebar-collapsed-width);
+            width: 0;
+            padding: 0;
+            overflow: hidden;
+    }
+
+    .menu-toggle {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 15;
+        width: 40px;
+        height: 40px;
+        border: 2px solid var(--accent);
+        background: color-mix(in srgb, var(--main-bg) 86%, #ffffff 14%);
+        color: var(--accent);
+        cursor: pointer;
+        border-radius: 10px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        transition: transform 0.15s ease;
+    }
+
+    .menu-toggle:hover {
+        transform: translateY(-1px);
+    }
+
+    .sidebar.collapsed ~ .main .menu-toggle {
+        display: flex;
         }
 
         .collapse-toggle {
@@ -200,15 +229,23 @@
 
         .edit-box {
             min-height: 190px;
-            border: 2px dashed var(--accent);
+            border: none;
             border-radius: 12px;
             padding: 14px;
             line-height: 1.6;
-            background: color-mix(in srgb, var(--main-bg) 84%, #ffffff 16%);
+            background: transparent;
             outline: none;
         }
 
         .edit-box:focus {
+            box-shadow: none;
+
+        .edit-box.editing {
+            border: 2px dashed var(--accent);
+            background: color-mix(in srgb, var(--main-bg) 84%, #ffffff 16%);
+        }
+
+        .edit-box.editing:focus {
             box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
         }
 
@@ -244,6 +281,18 @@
             margin-top: 10px;
             color: var(--accent);
             word-break: break-word;
+        }
+
+        .link-tool,
+        .link-tool input,
+        .link-tool button {
+            display: none;
+        }
+
+        .link-tool.editing,
+        .link-tool.editing input,
+        .link-tool.editing button {
+            display: grid;
         }
 
         .spotify-embed {
@@ -321,11 +370,11 @@
             display: none;
         }
 
-        body.locked {
+    body.editor-locked {
             overflow: hidden;
         }
 
-        body.locked .layout {
+        body.editor-locked .layout {
             filter: blur(6px);
             pointer-events: none;
             user-select: none;
@@ -382,6 +431,7 @@
         </aside>
 
         <main class="main" id="home">
+                        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar menu">☰</button>
             <section class="hero" aria-label="Hero section">
                 <div class="hero-copy">
                     <h1 class="title-main">REBECCA RODRIGUEZ</h1>
@@ -484,6 +534,9 @@
         const spotifyLinkStorageKey = "personalSiteSpotifyLink";
         const instagramLinkStorageKey = "personalSiteInstagramLink";
 
+    const OWNER_PASSWORD = "image-theory-2022";
+    const editorModeKey = "personalSiteEditorMode";
+    const menuToggle = document.getElementById("menuToggle");
         function setEditableState(enabled) {
             document.querySelectorAll(".edit-box").forEach((box) => {
                 box.contentEditable = enabled ? "true" : "false";
@@ -505,67 +558,45 @@
         }
 
         function lockSite() {
-            sessionStorage.removeItem(unlockSessionKey);
-            document.body.classList.add("locked");
-            authGate.classList.remove("hidden");
-            setEditableState(false);
             setupAuthUi();
-            passInput.value = "";
-            confirmInput.value = "";
-            authMsg.textContent = "";
-            passInput.focus();
-        }
-
-        function unlockSite() {
-            sessionStorage.setItem(unlockSessionKey, "yes");
-            document.body.classList.remove("locked");
-            authGate.classList.add("hidden");
-            setEditableState(true);
-        }
-
-        async function hashPass(value) {
             const data = new TextEncoder().encode(value);
-            const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-            return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
-        }
-
-        function setupAuthUi() {
-            const hasPass = Boolean(localStorage.getItem(passHashKey));
-            if (hasPass) {
-                authTitle.textContent = "Owner Access";
-                authNote.textContent = "Enter your passcode to view and edit your private website content.";
-                authSubmit.textContent = "Unlock";
-                confirmInput.style.display = "none";
             } else {
-                authTitle.textContent = "Set Owner Passcode";
-                authNote.textContent = "Create a passcode. Only this passcode unlocks your content and editing.";
-                authSubmit.textContent = "Create Passcode";
-                confirmInput.style.display = "block";
-            }
-        }
 
-        function saveEditableContent() {
-            Object.keys(contentKeys).forEach((boxId) => {
-                const el = document.getElementById(boxId);
-                localStorage.setItem(contentKeys[boxId], el.innerHTML);
-            });
         }
+                function setEditorMode(enabled) {
+                    const editBoxes = document.querySelectorAll(".edit-box");
+                    const linkTools = document.querySelectorAll(".link-tool");
 
-        function restoreEditableContent() {
-            Object.keys(contentKeys).forEach((boxId) => {
-                const el = document.getElementById(boxId);
-                const saved = localStorage.getItem(contentKeys[boxId]);
-                if (saved) {
-                    el.innerHTML = saved;
+                    if (enabled) {
+                        editBoxes.forEach((box) => {
+                            box.contentEditable = "true";
+                            box.classList.add("editing");
+                        });
+                        linkTools.forEach((tool) => tool.classList.add("editing"));
+                        lockBtn.textContent = "End Edit";
+                    } else {
+                        editBoxes.forEach((box) => {
+                            box.contentEditable = "false";
+                            box.classList.remove("editing");
+                        });
+                        linkTools.forEach((tool) => tool.classList.remove("editing"));
+                        lockBtn.textContent = "Edit Site";
+                    }
+
+                    localStorage.setItem(editorModeKey, enabled ? "true" : "false");
                 }
-                el.addEventListener("input", saveEditableContent);
-            });
-        }
-
-        function restoreSavedLink(storageKey, inputId, linkId, labelText, onUrl) {
-            const savedUrl = localStorage.getItem(storageKey) || "";
             if (!savedUrl) {
+                function promptForEditorMode() {
+                    const password = prompt("Enter password to edit:");
+                    if (password === null) return;
                 return;
+                    if (password === OWNER_PASSWORD) {
+                        const isCurrentlyEditing = localStorage.getItem(editorModeKey) === "true";
+                        setEditorMode(!isCurrentlyEditing);
+                    } else {
+                        alert("Incorrect password");
+                    }
+                }
             }
             document.getElementById(inputId).value = savedUrl;
             const url = setWorkingLink(inputId, linkId, labelText);
@@ -594,6 +625,9 @@
             collapseBtn.querySelector(".collapse-text").textContent = expanded ? " Collapse" : " Expand";
         });
 
+        menuToggle.addEventListener("click", () => {
+            sidebar.classList.remove("collapsed");
+        });
         homeBtn.addEventListener("click", () => {
             document.getElementById("home").scrollIntoView({ behavior: "smooth", block: "start" });
         });
@@ -667,52 +701,20 @@
         );
         restoreSavedLink(instagramLinkStorageKey, "instagramInput", "instagramLink", "Instagram");
 
-        setupAuthUi();
 
-        authSubmit.addEventListener("click", async () => {
-            const pass = passInput.value.trim();
-            const confirm = confirmInput.value.trim();
-            const hasPass = Boolean(localStorage.getItem(passHashKey));
 
-            if (!pass) {
-                authMsg.textContent = "Passcode is required.";
-                return;
-            }
 
-            if (!hasPass) {
-                if (pass.length < 4) {
-                    authMsg.textContent = "Use at least 4 characters for your passcode.";
-                    return;
-                }
-                if (pass !== confirm) {
-                    authMsg.textContent = "Passcodes do not match.";
-                    return;
-                }
-                const createdHash = await hashPass(pass);
-                localStorage.setItem(passHashKey, createdHash);
-                unlockSite();
-                authMsg.textContent = "";
-                return;
-            }
 
-            const inputHash = await hashPass(pass);
-            const savedHash = localStorage.getItem(passHashKey);
-            if (inputHash !== savedHash) {
-                authMsg.textContent = "Incorrect passcode.";
-                return;
-            }
 
-            unlockSite();
-            authMsg.textContent = "";
-        });
 
-        lockBtn.addEventListener("click", lockSite);
 
-        if (sessionStorage.getItem(unlockSessionKey) === "yes") {
-            unlockSite();
-        } else {
-            lockSite();
-        }
+        // Initialize with editor mode off (viewer mode)
+        setEditorMode(false);
+        authGate.classList.add("hidden");
     </script>
+        // Hide auth gate since we're using simple password prompt
+        document.getElementById("authGate").style.display = "none";
 </body>
+        lockBtn.addEventListener("click", promptForEditorMode);
+        lockBtn.textContent = "Edit Site";
 </html>
