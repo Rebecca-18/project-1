@@ -417,12 +417,8 @@
             <section class="hero" aria-label="Hero section">
                 <div class="hero-copy">
                     <h1 class="title-main">REBECCA RODRIGUEZ</h1>
-                    <div class="hero-tools">
-                        <input id="heroUpload" type="file" accept="image/*" aria-label="Upload a new hero image">
-                        <button id="heroReset" type="button">Use Default</button>
-                    </div>
                 </div>
-                <img class="hero-image" id="heroImage" src="pictures/hero-image.svg" alt="Hero image">
+                <img class="hero-image" id="heroImage" src="IMG_20260610_145045973.jpg" alt="Hero image">
             </section>
 
             <section class="section-block">
@@ -500,11 +496,6 @@
         const themeBtn = document.getElementById("themeBtn");
         const lockBtn = document.getElementById("lockBtn");
         const clock = document.getElementById("clock");
-        const heroImage = document.getElementById("heroImage");
-        const heroUpload = document.getElementById("heroUpload");
-        const heroReset = document.getElementById("heroReset");
-        const defaultHeroImage = "pictures/hero-image.svg";
-        const heroStorageKey = "personalSiteHeroImage";
         const authGate = document.getElementById("authGate");
         const authTitle = document.getElementById("authTitle");
         const authNote = document.getElementById("authNote");
@@ -536,8 +527,6 @@
                 themeBtn,
                 lockBtn,
                 ...document.querySelectorAll(".nav-button"),
-                heroUpload,
-                heroReset,
                 document.getElementById("spotifyInput"),
                 document.getElementById("spotifySave"),
                 document.getElementById("instagramInput"),
@@ -694,35 +683,6 @@
         });
 
         document.getElementById("spotifyEmbed").style.display = "none";
-
-        const savedHeroImage = localStorage.getItem(heroStorageKey);
-        if (savedHeroImage) {
-            heroImage.src = savedHeroImage;
-        }
-
-        heroUpload.addEventListener("change", (event) => {
-            const file = event.target.files && event.target.files[0];
-            if (!file) {
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = () => {
-                const imageData = typeof reader.result === "string" ? reader.result : "";
-                if (!imageData) {
-                    return;
-                }
-                heroImage.src = imageData;
-                localStorage.setItem(heroStorageKey, imageData);
-            };
-            reader.readAsDataURL(file);
-        });
-
-        heroReset.addEventListener("click", () => {
-            localStorage.removeItem(heroStorageKey);
-            heroImage.src = defaultHeroImage;
-            heroUpload.value = "";
-        });
 
         restoreEditableContent();
         restoreSavedLink(
