@@ -30,229 +30,190 @@
         body {
             background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.35), transparent 45%),
                         radial-gradient(circle at 85% 15%, rgba(0, 7, 39, 0.12), transparent 45%),
-                        linear-gradient(160deg, var(--main-bg) 0%, #b8c5ff 100%);
-            color: var(--accent);
-            font-family: "Libre Baskerville", serif;
-            min-height: 100vh;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
+                        <script>
+                            const OWNER_PASSWORD = "image-theory-2022";
+                            const sidebar = document.getElementById("sidebar");
+                            const collapseBtn = document.getElementById("collapseBtn");
+                            const menuToggle = document.getElementById("menuToggle");
+                            const homeBtn = document.getElementById("homeBtn");
+                            const themeBtn = document.getElementById("themeBtn");
+                            const lockBtn = document.getElementById("lockBtn");
+                            const clock = document.getElementById("clock");
 
-        body.dark {
-            --main-bg: #000727;
-            --accent: #99acff;
-            --panel-bg: rgba(153, 172, 255, 0.16);
-            --panel-border: rgba(153, 172, 255, 0.5);
-        }
+                            const contentKeys = {
+                                aboutBox: "personalSiteAbout",
+                                interestsBox: "personalSiteInterests",
+                                favoritesBox: "personalSiteFavorites",
+                                proudBox: "personalSiteProud",
+                                goalBox: "personalSiteGoal",
+                                findmeBox: "personalSiteFindMe"
+                            };
 
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
+                            const spotifyInput = document.getElementById("spotifyInput");
+                            const spotifySave = document.getElementById("spotifySave");
+                            const spotifyLink = document.getElementById("spotifyLink");
+                            const spotifyEmbed = document.getElementById("spotifyEmbed");
+                            const instagramInput = document.getElementById("instagramInput");
+                            const instagramSave = document.getElementById("instagramSave");
+                            const instagramLink = document.getElementById("instagramLink");
 
-        .sidebar {
-            width: var(--sidebar-width);
-            background: color-mix(in srgb, var(--main-bg) 86%, #ffffff 14%);
-            border-right: 3px solid var(--accent);
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            transition: width 0.3s ease;
-            z-index: 10;
-        }
+                            const spotifyLinkStorageKey = "personalSiteSpotifyLink";
+                            const instagramLinkStorageKey = "personalSiteInstagramLink";
 
-        .sidebar.collapsed {
-            width: 0;
-            padding: 0;
-            overflow: hidden;
-    }
+                            function updateClock() {
+                                const now = new Date();
+                                clock.textContent = now.toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    second: "2-digit",
+                                    hour12: true
+                                });
+                            }
 
-    .menu-toggle {
-        position: fixed;
-        top: 16px;
-        left: 16px;
-        z-index: 15;
-        width: 40px;
-        height: 40px;
-        border: 2px solid var(--accent);
-        background: color-mix(in srgb, var(--main-bg) 86%, #ffffff 14%);
-        color: var(--accent);
-        cursor: pointer;
-        border-radius: 10px;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        transition: transform 0.15s ease;
-    }
+                            function setEditorMode(enabled) {
+                                document.querySelectorAll(".edit-box").forEach((box) => {
+                                    box.contentEditable = enabled ? "true" : "false";
+                                    box.classList.toggle("editing", enabled);
+                                });
 
-    .menu-toggle:hover {
-        transform: translateY(-1px);
-    }
+                                document.querySelectorAll(".link-tool").forEach((tool) => {
+                                    tool.classList.toggle("editing", enabled);
+                                });
 
-    .sidebar.collapsed ~ .main .menu-toggle {
-        display: flex;
-        }
+                                lockBtn.textContent = enabled ? "End Edit" : "Edit Site";
+                            }
 
-        .collapse-toggle {
-            width: 100%;
-            border: 2px solid var(--accent);
-            background: transparent;
-            color: var(--accent);
-            padding: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            border-radius: 12px;
-            font-family: "Libre Baskerville", serif;
-        }
+                            function promptForEditorToggle() {
+                                const password = window.prompt("Enter password:");
+                                if (password === null) {
+                                    return;
+                                }
 
-        .first-section {
-            min-height: 74px;
-            border: 2px solid var(--accent);
-            border-radius: 12px;
-            padding: 8px;
-            display: grid;
-            grid-template-columns: auto auto auto 1fr;
-            align-items: center;
-            gap: 8px;
-            background: var(--panel-bg);
-        }
+                                if (password !== OWNER_PASSWORD) {
+                                    window.alert("Incorrect password.");
+                                    return;
+                                }
 
-        .first-section button,
-        .nav-button {
-            border: 2px solid var(--accent);
-            background: transparent;
-            color: var(--accent);
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: "Libre Baskerville", serif;
-            transition: transform 0.15s ease, background-color 0.15s ease;
-        }
+                                const isEditing = lockBtn.textContent === "End Edit";
+                                setEditorMode(!isEditing);
+                            }
 
-        .first-section button {
-            padding: 8px 10px;
-            font-size: 0.9rem;
-        }
+                            function saveEditableContent() {
+                                Object.keys(contentKeys).forEach((boxId) => {
+                                    const el = document.getElementById(boxId);
+                                    localStorage.setItem(contentKeys[boxId], el.innerHTML);
+                                });
+                            }
 
-        .nav-button {
-            width: 100%;
-            flex: 1;
-            min-height: 80px;
-            padding: 12px;
-            text-align: left;
-            font-size: 0.95rem;
-            background: var(--panel-bg);
-        }
+                            function restoreEditableContent() {
+                                Object.keys(contentKeys).forEach((boxId) => {
+                                    const el = document.getElementById(boxId);
+                                    const saved = localStorage.getItem(contentKeys[boxId]);
+                                    if (saved) {
+                                        el.innerHTML = saved;
+                                    }
+                                    el.addEventListener("input", saveEditableContent);
+                                });
+                            }
 
-        .first-section button:hover,
-        .nav-button:hover,
-        .collapse-toggle:hover {
-            transform: translateY(-1px);
-            background: color-mix(in srgb, var(--accent) 10%, transparent);
-        }
+                            function setWorkingLink(inputEl, linkEl, labelText) {
+                                const value = inputEl.value.trim();
+                                if (!value) {
+                                    linkEl.textContent = "";
+                                    linkEl.removeAttribute("href");
+                                    return "";
+                                }
+                                linkEl.href = value;
+                                linkEl.textContent = labelText + ": " + value;
+                                return value;
+                            }
 
-        .clock {
-            font-size: 0.95rem;
-            text-align: right;
-            font-weight: 700;
-            white-space: nowrap;
-        }
+                            function spotifyEmbedUrl(url) {
+                                const match = url.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
+                                if (!match) {
+                                    return "";
+                                }
+                                return "https://open.spotify.com/embed/playlist/" + match[1] + "?utm_source=generator";
+                            }
 
-        .sidebar.collapsed .first-section {
-            grid-template-columns: 1fr;
-            gap: 6px;
-            justify-items: center;
-        }
+                            function restoreSavedLink(storageKey, inputEl, linkEl, labelText, onUrl) {
+                                const savedUrl = localStorage.getItem(storageKey) || "";
+                                if (!savedUrl) {
+                                    return;
+                                }
+                                inputEl.value = savedUrl;
+                                const url = setWorkingLink(inputEl, linkEl, labelText);
+                                if (onUrl) {
+                                    onUrl(url);
+                                }
+                            }
 
-        .sidebar.collapsed .clock,
-        .sidebar.collapsed .nav-text,
-        .sidebar.collapsed .collapse-text {
-            display: none;
-        }
+                            collapseBtn.addEventListener("click", () => {
+                                sidebar.classList.add("collapsed");
+                            });
 
-        .sidebar.collapsed .nav-button {
-            text-align: center;
-            padding: 10px 6px;
-            min-height: 78px;
-        }
+                            menuToggle.addEventListener("click", () => {
+                                sidebar.classList.remove("collapsed");
+                            });
 
-        .main {
-            flex: 1;
-            padding: 34px clamp(18px, 4vw, 56px);
-        }
+                            homeBtn.addEventListener("click", () => {
+                                document.getElementById("home").scrollIntoView({ behavior: "smooth", block: "start" });
+                            });
 
-        .section-block {
-            padding: 24px;
-            border: 2px solid var(--panel-border);
-            border-radius: 18px;
-            margin-bottom: 26px;
-            background: color-mix(in srgb, var(--panel-bg) 88%, transparent);
-            backdrop-filter: blur(1px);
-        }
+                            themeBtn.addEventListener("click", () => {
+                                document.body.classList.toggle("dark");
+                                themeBtn.textContent = document.body.classList.contains("dark") ? "Light" : "Dark";
+                            });
 
-        .hero {
-            margin-bottom: 26px;
-            border: 2px solid var(--panel-border);
-            border-radius: 18px;
-            overflow: hidden;
-            background: color-mix(in srgb, var(--panel-bg) 88%, transparent);
-        }
+                            document.querySelectorAll(".nav-button").forEach((button) => {
+                                button.addEventListener("click", () => {
+                                    const target = document.getElementById(button.dataset.target);
+                                    if (target) {
+                                        target.scrollIntoView({ behavior: "smooth", block: "start" });
+                                    }
+                                });
+                            });
 
-        .hero-copy {
-            padding: 24px;
-        }
+                            spotifySave.addEventListener("click", () => {
+                                const url = setWorkingLink(spotifyInput, spotifyLink, "Spotify Playlist");
+                                const embedUrl = spotifyEmbedUrl(url);
+                                spotifyEmbed.src = embedUrl;
+                                spotifyEmbed.style.display = embedUrl ? "block" : "none";
+                                localStorage.setItem(spotifyLinkStorageKey, url);
+                            });
 
-        .hero-image {
-            width: 100%;
-            height: min(28vh, 220px);
-            object-fit: cover;
-            border-top: 2px solid var(--panel-border);
-            display: block;
-        }
+                            instagramSave.addEventListener("click", () => {
+                                const url = setWorkingLink(instagramInput, instagramLink, "Instagram");
+                                localStorage.setItem(instagramLinkStorageKey, url);
+                            });
 
-        .title-main {
-            font-family: "Cinzel", serif;
-            font-size: clamp(2rem, 6vw, 4.3rem);
-            letter-spacing: 0.08em;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
+                            spotifyInput.addEventListener("input", () => {
+                                localStorage.setItem(spotifyLinkStorageKey, spotifyInput.value.trim());
+                            });
 
-        .subheading {
-            font-size: 1.4rem;
-            margin-bottom: 14px;
-            text-transform: none;
-        }
+                            instagramInput.addEventListener("input", () => {
+                                localStorage.setItem(instagramLinkStorageKey, instagramInput.value.trim());
+                            });
 
-        .edit-box {
-            min-height: 190px;
-            border: none;
-            border-radius: 12px;
-            padding: 14px;
-            line-height: 1.6;
-            background: transparent;
-            outline: none;
-        }
+                            lockBtn.addEventListener("click", promptForEditorToggle);
 
-        .edit-box:focus {
-            box-shadow: none;
+                            updateClock();
+                            setInterval(updateClock, 1000);
 
-        .edit-box.editing {
-            border: 2px dashed var(--accent);
-            background: color-mix(in srgb, var(--main-bg) 84%, #ffffff 16%);
-        }
+                            spotifyEmbed.style.display = "none";
+                            restoreEditableContent();
+                            restoreSavedLink(spotifyLinkStorageKey, spotifyInput, spotifyLink, "Spotify Playlist", (url) => {
+                                const embedUrl = spotifyEmbedUrl(url);
+                                spotifyEmbed.src = embedUrl;
+                                spotifyEmbed.style.display = embedUrl ? "block" : "none";
+                            });
+                            restoreSavedLink(instagramLinkStorageKey, instagramInput, instagramLink, "Instagram");
 
-        .edit-box.editing:focus {
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
-        }
-
-        .link-tool {
-            margin-top: 14px;
-            display: grid;
-            grid-template-columns: 1fr auto;
+                            // Start in viewer mode each load.
+                            setEditorMode(false);
+                        </script>
+                    </body>
+                    </html>
             gap: 10px;
         }
 
@@ -283,15 +244,11 @@
             word-break: break-word;
         }
 
-        .link-tool,
-        .link-tool input,
-        .link-tool button {
+        .link-tool {
             display: none;
         }
 
-        .link-tool.editing,
-        .link-tool.editing input,
-        .link-tool.editing button {
+        .link-tool.editing {
             display: grid;
         }
 
@@ -494,35 +451,16 @@
         </main>
     </div>
 
-    <div class="auth-gate" id="authGate" aria-live="polite">
-        <div class="auth-card">
-            <h2 class="auth-title" id="authTitle">Owner Access</h2>
-            <p class="auth-note" id="authNote"></p>
-            <input id="passInput" type="password" placeholder="Passcode">
-            <input id="confirmInput" type="password" placeholder="Confirm passcode">
-            <div class="auth-actions">
-                <button id="authSubmit" type="button"></button>
-            </div>
-            <p class="auth-msg" id="authMsg"></p>
-        </div>
-    </div>
-
     <script>
+        const OWNER_PASSWORD = "image-theory-2022";
         const sidebar = document.getElementById("sidebar");
         const collapseBtn = document.getElementById("collapseBtn");
+        const menuToggle = document.getElementById("menuToggle");
         const homeBtn = document.getElementById("homeBtn");
         const themeBtn = document.getElementById("themeBtn");
         const lockBtn = document.getElementById("lockBtn");
         const clock = document.getElementById("clock");
-        const authGate = document.getElementById("authGate");
-        const authTitle = document.getElementById("authTitle");
-        const authNote = document.getElementById("authNote");
-        const passInput = document.getElementById("passInput");
-        const confirmInput = document.getElementById("confirmInput");
-        const authSubmit = document.getElementById("authSubmit");
-        const authMsg = document.getElementById("authMsg");
-        const passHashKey = "personalSiteOwnerPassHash";
-        const unlockSessionKey = "personalSiteUnlocked";
+
         const contentKeys = {
             aboutBox: "personalSiteAbout",
             interestsBox: "personalSiteInterests",
@@ -531,79 +469,17 @@
             goalBox: "personalSiteGoal",
             findmeBox: "personalSiteFindMe"
         };
+
+        const spotifyInput = document.getElementById("spotifyInput");
+        const spotifySave = document.getElementById("spotifySave");
+        const spotifyLink = document.getElementById("spotifyLink");
+        const spotifyEmbed = document.getElementById("spotifyEmbed");
+        const instagramInput = document.getElementById("instagramInput");
+        const instagramSave = document.getElementById("instagramSave");
+        const instagramLink = document.getElementById("instagramLink");
+
         const spotifyLinkStorageKey = "personalSiteSpotifyLink";
         const instagramLinkStorageKey = "personalSiteInstagramLink";
-
-    const OWNER_PASSWORD = "image-theory-2022";
-    const editorModeKey = "personalSiteEditorMode";
-    const menuToggle = document.getElementById("menuToggle");
-        function setEditableState(enabled) {
-            document.querySelectorAll(".edit-box").forEach((box) => {
-                box.contentEditable = enabled ? "true" : "false";
-            });
-
-            [
-                collapseBtn,
-                homeBtn,
-                themeBtn,
-                lockBtn,
-                ...document.querySelectorAll(".nav-button"),
-                document.getElementById("spotifyInput"),
-                document.getElementById("spotifySave"),
-                document.getElementById("instagramInput"),
-                document.getElementById("instagramSave")
-            ].forEach((el) => {
-                el.disabled = !enabled;
-            });
-        }
-
-        function lockSite() {
-            setupAuthUi();
-            const data = new TextEncoder().encode(value);
-            } else {
-
-        }
-                function setEditorMode(enabled) {
-                    const editBoxes = document.querySelectorAll(".edit-box");
-                    const linkTools = document.querySelectorAll(".link-tool");
-
-                    if (enabled) {
-                        editBoxes.forEach((box) => {
-                            box.contentEditable = "true";
-                            box.classList.add("editing");
-                        });
-                        linkTools.forEach((tool) => tool.classList.add("editing"));
-                        lockBtn.textContent = "End Edit";
-                    } else {
-                        editBoxes.forEach((box) => {
-                            box.contentEditable = "false";
-                            box.classList.remove("editing");
-                        });
-                        linkTools.forEach((tool) => tool.classList.remove("editing"));
-                        lockBtn.textContent = "Edit Site";
-                    }
-
-                    localStorage.setItem(editorModeKey, enabled ? "true" : "false");
-                }
-            if (!savedUrl) {
-                function promptForEditorMode() {
-                    const password = prompt("Enter password to edit:");
-                    if (password === null) return;
-                return;
-                    if (password === OWNER_PASSWORD) {
-                        const isCurrentlyEditing = localStorage.getItem(editorModeKey) === "true";
-                        setEditorMode(!isCurrentlyEditing);
-                    } else {
-                        alert("Incorrect password");
-                    }
-                }
-            }
-            document.getElementById(inputId).value = savedUrl;
-            const url = setWorkingLink(inputId, linkId, labelText);
-            if (onUrl) {
-                onUrl(url);
-            }
-        }
 
         function updateClock() {
             const now = new Date();
@@ -615,19 +491,92 @@
             });
         }
 
-        updateClock();
-        setInterval(updateClock, 1000);
+        function setEditorMode(enabled) {
+            document.querySelectorAll(".edit-box").forEach((box) => {
+                box.contentEditable = enabled ? "true" : "false";
+                box.classList.toggle("editing", enabled);
+            });
+
+            document.querySelectorAll(".link-tool").forEach((tool) => {
+                tool.classList.toggle("editing", enabled);
+            });
+
+            lockBtn.textContent = enabled ? "End Edit" : "Edit Site";
+        }
+
+        function promptForEditorToggle() {
+            const password = window.prompt("Enter password:");
+            if (password === null) {
+                return;
+            }
+
+            if (password !== OWNER_PASSWORD) {
+                window.alert("Incorrect password.");
+                return;
+            }
+
+            const isEditing = lockBtn.textContent === "End Edit";
+            setEditorMode(!isEditing);
+        }
+
+        function saveEditableContent() {
+            Object.keys(contentKeys).forEach((boxId) => {
+                const el = document.getElementById(boxId);
+                localStorage.setItem(contentKeys[boxId], el.innerHTML);
+            });
+        }
+
+        function restoreEditableContent() {
+            Object.keys(contentKeys).forEach((boxId) => {
+                const el = document.getElementById(boxId);
+                const saved = localStorage.getItem(contentKeys[boxId]);
+                if (saved) {
+                    el.innerHTML = saved;
+                }
+                el.addEventListener("input", saveEditableContent);
+            });
+        }
+
+        function setWorkingLink(inputEl, linkEl, labelText) {
+            const value = inputEl.value.trim();
+            if (!value) {
+                linkEl.textContent = "";
+                linkEl.removeAttribute("href");
+                return "";
+            }
+            linkEl.href = value;
+            linkEl.textContent = labelText + ": " + value;
+            return value;
+        }
+
+        function spotifyEmbedUrl(url) {
+            const match = url.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
+            if (!match) {
+                return "";
+            }
+            return "https://open.spotify.com/embed/playlist/" + match[1] + "?utm_source=generator";
+        }
+
+        function restoreSavedLink(storageKey, inputEl, linkEl, labelText, onUrl) {
+            const savedUrl = localStorage.getItem(storageKey) || "";
+            if (!savedUrl) {
+                return;
+            }
+            inputEl.value = savedUrl;
+            const url = setWorkingLink(inputEl, linkEl, labelText);
+            if (onUrl) {
+                onUrl(url);
+            }
+        }
 
         collapseBtn.addEventListener("click", () => {
-            sidebar.classList.toggle("collapsed");
-            const expanded = !sidebar.classList.contains("collapsed");
-            collapseBtn.setAttribute("aria-label", expanded ? "Collapse sidebar" : "Expand sidebar");
-            collapseBtn.querySelector(".collapse-text").textContent = expanded ? " Collapse" : " Expand";
+            sidebar.classList.add("collapsed");
         });
 
         menuToggle.addEventListener("click", () => {
             sidebar.classList.remove("collapsed");
         });
+
         homeBtn.addEventListener("click", () => {
             document.getElementById("home").scrollIntoView({ behavior: "smooth", block: "start" });
         });
@@ -646,75 +595,42 @@
             });
         });
 
-        function setWorkingLink(inputId, linkId, labelText) {
-            const input = document.getElementById(inputId);
-            const link = document.getElementById(linkId);
-            const value = input.value.trim();
-
-            if (!value) {
-                link.textContent = "";
-                link.removeAttribute("href");
-                return "";
-            }
-
-            link.href = value;
-            link.textContent = labelText + ": " + value;
-            return value;
-        }
-
-        function spotifyEmbedUrl(url) {
-            const match = url.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
-            if (!match) {
-                return "";
-            }
-            return "https://open.spotify.com/embed/playlist/" + match[1] + "?utm_source=generator";
-        }
-
-        document.getElementById("spotifySave").addEventListener("click", () => {
-            const url = setWorkingLink("spotifyInput", "spotifyLink", "Spotify Playlist");
-            const embed = document.getElementById("spotifyEmbed");
+        spotifySave.addEventListener("click", () => {
+            const url = setWorkingLink(spotifyInput, spotifyLink, "Spotify Playlist");
             const embedUrl = spotifyEmbedUrl(url);
-            embed.src = embedUrl;
-            embed.style.display = embedUrl ? "block" : "none";
+            spotifyEmbed.src = embedUrl;
+            spotifyEmbed.style.display = embedUrl ? "block" : "none";
             localStorage.setItem(spotifyLinkStorageKey, url);
         });
 
-        document.getElementById("instagramSave").addEventListener("click", () => {
-            const url = setWorkingLink("instagramInput", "instagramLink", "Instagram");
+        instagramSave.addEventListener("click", () => {
+            const url = setWorkingLink(instagramInput, instagramLink, "Instagram");
             localStorage.setItem(instagramLinkStorageKey, url);
         });
 
-        document.getElementById("spotifyEmbed").style.display = "none";
+        spotifyInput.addEventListener("input", () => {
+            localStorage.setItem(spotifyLinkStorageKey, spotifyInput.value.trim());
+        });
 
+        instagramInput.addEventListener("input", () => {
+            localStorage.setItem(instagramLinkStorageKey, instagramInput.value.trim());
+        });
+
+        lockBtn.addEventListener("click", promptForEditorToggle);
+
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        spotifyEmbed.style.display = "none";
         restoreEditableContent();
-        restoreSavedLink(
-            spotifyLinkStorageKey,
-            "spotifyInput",
-            "spotifyLink",
-            "Spotify Playlist",
-            (url) => {
-                const embed = document.getElementById("spotifyEmbed");
-                const embedUrl = spotifyEmbedUrl(url);
-                embed.src = embedUrl;
-                embed.style.display = embedUrl ? "block" : "none";
-            }
-        );
-        restoreSavedLink(instagramLinkStorageKey, "instagramInput", "instagramLink", "Instagram");
+        restoreSavedLink(spotifyLinkStorageKey, spotifyInput, spotifyLink, "Spotify Playlist", (url) => {
+            const embedUrl = spotifyEmbedUrl(url);
+            spotifyEmbed.src = embedUrl;
+            spotifyEmbed.style.display = embedUrl ? "block" : "none";
+        });
+        restoreSavedLink(instagramLinkStorageKey, instagramInput, instagramLink, "Instagram");
 
-
-
-
-
-
-
-
-        // Initialize with editor mode off (viewer mode)
         setEditorMode(false);
-        authGate.classList.add("hidden");
     </script>
-        // Hide auth gate since we're using simple password prompt
-        document.getElementById("authGate").style.display = "none";
 </body>
-        lockBtn.addEventListener("click", promptForEditorMode);
-        lockBtn.textContent = "Edit Site";
 </html>
