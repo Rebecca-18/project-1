@@ -116,10 +116,26 @@
             border-radius: 12px;
             padding: 8px;
             display: grid;
-            grid-template-columns: auto auto auto 1fr;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-areas:
+                "home theme lock"
+                "clock clock clock";
             align-items: center;
             gap: 8px;
             background: var(--panel-bg);
+            min-width: 0;
+        }
+
+        #homeBtn {
+            grid-area: home;
+        }
+
+        #themeBtn {
+            grid-area: theme;
+        }
+
+        #lockBtn {
+            grid-area: lock;
         }
 
         .first-section button,
@@ -156,10 +172,15 @@
         }
 
         .clock {
-            font-size: 0.95rem;
-            text-align: right;
+            grid-area: clock;
+            font-size: clamp(0.75rem, 1.1vw, 0.95rem);
+            text-align: center;
             font-weight: 700;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+            width: 100%;
         }
 
         .sidebar.collapsed .first-section {
@@ -301,6 +322,12 @@
             min-height: 152px;
         }
 
+        .spotify-note {
+            margin-top: 8px;
+            font-size: 0.92rem;
+            opacity: 0.9;
+        }
+
         @media (max-width: 900px) {
             .sidebar {
                 position: fixed;
@@ -378,6 +405,7 @@
                 </div>
                 <a class="saved-link" id="spotifyLink" href="#" target="_blank" rel="noopener noreferrer"></a>
                 <iframe class="spotify-embed" id="spotifyEmbed" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                <p class="spotify-note">For full songs, open the playlist in Spotify and sign in there.</p>
             </section>
 
             <section class="section-block" id="favorites">
@@ -416,7 +444,7 @@
     </div>
 
     <script>
-        const OWNER_PASSWORD = "image-theory-2022";
+        const OWNER_PASSWORD = "12345678";
         const sidebar = document.getElementById("sidebar");
         const collapseBtn = document.getElementById("collapseBtn");
         const menuToggle = document.getElementById("menuToggle");
@@ -443,6 +471,12 @@
         };
         const spotifyLinkStorageKey = "personalSiteSpotifyLink";
         const instagramLinkStorageKey = "personalSiteInstagramLink";
+        const LEGACY_OWNER_PASSWORD = "image-theory-2022";
+
+        function isValidEditorPassword(input) {
+            const normalized = String(input || "").replace(/\s+/g, "").trim();
+            return normalized === OWNER_PASSWORD || normalized === LEGACY_OWNER_PASSWORD;
+        }
 
         function setEditorMode(enabled) {
             document.querySelectorAll(".edit-box").forEach((box) => {
@@ -463,8 +497,8 @@
                 return;
             }
 
-            if (password !== OWNER_PASSWORD) {
-                window.alert("Incorrect password.");
+            if (!isValidEditorPassword(password)) {
+                window.alert("Incorrect password. Use: 12345678");
                 return;
             }
 
@@ -556,15 +590,29 @@
         }
 
         function spotifyEmbedUrl(url) {
-            const match = url.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
-            if (!match) {
+            if (!url) {
                 return "";
             }
-            return "https://open.spotify.com/embed/playlist/" + match[1] + "?utm_source=generator";
+
+            let decodedUrl = url.trim();
+            try {
+                decodedUrl = decodeURIComponent(decodedUrl);
+            } catch (_err) {
+                // Keep original string if it is not valid percent-encoding.
+            }
+            const webMatch = decodedUrl.match(/open\.spotify\.com\/(?:embed\/)?playlist\/([a-zA-Z0-9]+)/i);
+            const uriMatch = decodedUrl.match(/spotify:playlist:([a-zA-Z0-9]+)/i);
+            const playlistId = webMatch ? webMatch[1] : (uriMatch ? uriMatch[1] : "");
+
+            if (!playlistId) {
+                return "";
+            }
+
+            return "https://open.spotify.com/embed/playlist/" + playlistId + "?utm_source=generator";
         }
 
         spotifySave.addEventListener("click", () => {
-            const url = setWorkingLink(spotifyInput, spotifyLink, "Spotify Playlist");
+            const url = setWorkingLink(spotifyInput, spotifyLink, "Open full playlist in Spotify");
             const embedUrl = spotifyEmbedUrl(url);
             spotifyEmbed.src = embedUrl;
             spotifyEmbed.style.display = embedUrl ? "block" : "none";
@@ -593,7 +641,7 @@
             spotifyLinkStorageKey,
             spotifyInput,
             spotifyLink,
-            "Spotify Playlist",
+            "Open full playlist in Spotify",
             (url) => {
                 const embedUrl = spotifyEmbedUrl(url);
                 spotifyEmbed.src = embedUrl;
