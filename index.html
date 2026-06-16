@@ -612,28 +612,40 @@
             });
         });
 
-        heroSection.addEventListener("dragover", (event) => {
-            if (lockBtn.textContent !== "End Edit") {
+        function isEditingMode() {
+            return lockBtn.textContent === "End Edit";
+        }
+
+        function handleHeroDragOver(event) {
+            if (!isEditingMode()) {
                 return;
             }
             event.preventDefault();
             heroSection.classList.add("drag-over");
-        });
+        }
 
-        heroSection.addEventListener("dragleave", () => {
+        function handleHeroDragLeave() {
             heroSection.classList.remove("drag-over");
-        });
+        }
 
-        heroSection.addEventListener("drop", (event) => {
+        function handleHeroDrop(event) {
             heroSection.classList.remove("drag-over");
-            if (lockBtn.textContent !== "End Edit") {
+            if (!isEditingMode()) {
                 return;
             }
 
             event.preventDefault();
             const file = event.dataTransfer && event.dataTransfer.files ? event.dataTransfer.files[0] : null;
             applyHeroImage(file);
-        });
+        }
+
+        heroSection.addEventListener("dragover", handleHeroDragOver);
+
+        heroSection.addEventListener("dragleave", handleHeroDragLeave);
+        heroSection.addEventListener("drop", handleHeroDrop);
+        heroImage.addEventListener("dragover", handleHeroDragOver);
+        heroImage.addEventListener("dragleave", handleHeroDragLeave);
+        heroImage.addEventListener("drop", handleHeroDrop);
 
         function setWorkingLink(inputEl, linkEl, labelText) {
             const value = inputEl.value.trim();
