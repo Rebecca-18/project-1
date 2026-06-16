@@ -569,6 +569,17 @@
             };
         }
 
+        function hasLocalSnapshot() {
+            const hasSavedSection = Object.keys(contentKeys).some((boxId) => {
+                return localStorage.getItem(contentKeys[boxId]) !== null;
+            });
+
+            return hasSavedSection
+                || localStorage.getItem(spotifyLinkStorageKey) !== null
+                || localStorage.getItem(instagramLinkStorageKey) !== null
+                || localStorage.getItem(heroImageStorageKey) !== null;
+        }
+
         function applySiteState(state) {
             if (!state || typeof state !== "object") {
                 return;
@@ -835,9 +846,14 @@
             );
             restoreSavedLink(instagramLinkStorageKey, instagramInput, instagramLink, "Instagram");
 
+            const hasLocalState = hasLocalSnapshot();
             const remoteState = await fetchRemoteState();
-            if (remoteState) {
+
+            if (remoteState && !hasLocalState) {
                 applySiteState(remoteState);
+            } else if (hasLocalState) {
+                // If this device already has progress, keep it and push upstream.
+                scheduleRemoteSync(true);
             }
 
             setEditorMode(false);
