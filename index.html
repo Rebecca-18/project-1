@@ -484,6 +484,10 @@
         const instagramLinkStorageKey = "personalSiteInstagramLink";
         const heroImageStorageKey = "personalSiteHeroImage";
         const LEGACY_OWNER_PASSWORD = "image-theory-2022";
+        const syncBlobId = "019ed1f9-25a5-72e9-83be-db15bf4fa3fe";
+        const syncApiUrl = "https://jsonblob.com/api/jsonBlob/" + syncBlobId;
+
+        let syncTimeoutId = null;
 
         function isValidEditorPassword(input) {
             const normalized = String(input || "").replace(/\s+/g, "").trim();
@@ -503,6 +507,10 @@
             heroSection.classList.toggle("editing", enabled);
 
             lockBtn.textContent = enabled ? "End Edit" : "Edit Site";
+
+            if (!enabled) {
+                scheduleRemoteSync(true);
+            }
         }
 
         function promptForEditorToggle() {
@@ -539,8 +547,102 @@
                 }
                 heroImage.src = result;
                 localStorage.setItem(heroImageStorageKey, result);
+                scheduleRemoteSync();
             };
             reader.readAsDataURL(file);
+        }
+
+        function collectSiteState() {
+            const content = {};
+            Object.keys(contentKeys).forEach((boxId) => {
+                const el = document.getElementById(boxId);
+                content[boxId] = el.innerHTML;
+            });
+
+            return {
+                schema: "personal-site-sync-v1",
+                updatedAt: Date.now(),
+                content,
+                spotifyUrl: spotifyInput.value.trim(),
+                instagramUrl: instagramInput.value.trim(),
+                heroImageSrc: heroImage.src || ""
+            };
+        }
+
+        function applySiteState(state) {
+            if (!state || typeof state !== "object") {
+                return;
+            }
+
+            const content = state.content && typeof state.content === "object" ? state.content : {};
+            Object.keys(contentKeys).forEach((boxId) => {
+                if (typeof content[boxId] === "string") {
+                    const el = document.getElementById(boxId);
+                    el.innerHTML = content[boxId];
+                    localStorage.setItem(contentKeys[boxId], content[boxId]);
+                }
+            });
+
+            if (typeof state.spotifyUrl === "string") {
+                spotifyInput.value = state.spotifyUrl;
+                const spotifyUrl = setWorkingLink(spotifyInput, spotifyLink, "Open full playlist in Spotify");
+                const embedUrl = spotifyEmbedUrl(spotifyUrl);
+                spotifyEmbed.src = embedUrl;
+                spotifyEmbed.style.display = embedUrl ? "block" : "none";
+                localStorage.setItem(spotifyLinkStorageKey, state.spotifyUrl);
+            }
+
+            if (typeof state.instagramUrl === "string") {
+                instagramInput.value = state.instagramUrl;
+                setWorkingLink(instagramInput, instagramLink, "Instagram");
+                localStorage.setItem(instagramLinkStorageKey, state.instagramUrl);
+            }
+
+            if (typeof state.heroImageSrc === "string" && state.heroImageSrc) {
+                heroImage.src = state.heroImageSrc;
+                localStorage.setItem(heroImageStorageKey, state.heroImageSrc);
+            }
+        }
+
+        async function fetchRemoteState() {
+            try {
+                const response = await fetch(syncApiUrl, { cache: "no-store" });
+                if (!response.ok) {
+                    return null;
+                }
+                return await response.json();
+            } catch (_err) {
+                return null;
+            }
+        }
+
+        async function pushRemoteState() {
+            try {
+                await fetch(syncApiUrl, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(collectSiteState())
+                });
+            } catch (_err) {
+                // Keep local saves as fallback when remote sync is unavailable.
+            }
+        }
+
+        function scheduleRemoteSync(force) {
+            if (!force && !isEditingMode()) {
+                return;
+            }
+
+            if (syncTimeoutId !== null) {
+                clearTimeout(syncTimeoutId);
+            }
+
+            syncTimeoutId = window.setTimeout(() => {
+                syncTimeoutId = null;
+                pushRemoteState();
+            }, 500);
         }
 
         function saveEditableContent() {
@@ -548,6 +650,7 @@
                 const el = document.getElementById(boxId);
                 localStorage.setItem(contentKeys[boxId], el.innerHTML);
             });
+            scheduleRemoteSync();
         }
 
         function restoreEditableContent() {
@@ -689,19 +792,23 @@
             spotifyEmbed.src = embedUrl;
             spotifyEmbed.style.display = embedUrl ? "block" : "none";
             localStorage.setItem(spotifyLinkStorageKey, url);
+            scheduleRemoteSync();
         });
 
         instagramSave.addEventListener("click", () => {
             const url = setWorkingLink(instagramInput, instagramLink, "Instagram");
             localStorage.setItem(instagramLinkStorageKey, url);
+            scheduleRemoteSync();
         });
 
         spotifyInput.addEventListener("input", () => {
             localStorage.setItem(spotifyLinkStorageKey, spotifyInput.value.trim());
+            scheduleRemoteSync();
         });
 
         instagramInput.addEventListener("input", () => {
             localStorage.setItem(instagramLinkStorageKey, instagramInput.value.trim());
+            scheduleRemoteSync();
         });
 
         lockBtn.addEventListener("click", promptForEditorToggle);
@@ -713,21 +820,30 @@
             heroImage.src = savedHeroImage;
         }
 
-        restoreEditableContent();
-        restoreSavedLink(
-            spotifyLinkStorageKey,
-            spotifyInput,
-            spotifyLink,
-            "Open full playlist in Spotify",
-            (url) => {
-                const embedUrl = spotifyEmbedUrl(url);
-                spotifyEmbed.src = embedUrl;
-                spotifyEmbed.style.display = embedUrl ? "block" : "none";
-            }
-        );
-        restoreSavedLink(instagramLinkStorageKey, instagramInput, instagramLink, "Instagram");
+        async function initializeSite() {
+            restoreEditableContent();
+            restoreSavedLink(
+                spotifyLinkStorageKey,
+                spotifyInput,
+                spotifyLink,
+                "Open full playlist in Spotify",
+                (url) => {
+                    const embedUrl = spotifyEmbedUrl(url);
+                    spotifyEmbed.src = embedUrl;
+                    spotifyEmbed.style.display = embedUrl ? "block" : "none";
+                }
+            );
+            restoreSavedLink(instagramLinkStorageKey, instagramInput, instagramLink, "Instagram");
 
-        setEditorMode(false);
+            const remoteState = await fetchRemoteState();
+            if (remoteState) {
+                applySiteState(remoteState);
+            }
+
+            setEditorMode(false);
+        }
+
+        initializeSite();
     </script>
 </body>
 </html>
