@@ -223,6 +223,15 @@
             background: color-mix(in srgb, var(--panel-bg) 88%, transparent);
         }
 
+        .hero.editing {
+            outline: 2px dashed var(--accent);
+            outline-offset: 3px;
+        }
+
+        .hero.drag-over {
+            background: color-mix(in srgb, var(--main-bg) 80%, #ffffff 20%);
+        }
+
         .hero-copy {
             padding: 24px;
         }
@@ -452,6 +461,8 @@
         const themeBtn = document.getElementById("themeBtn");
         const lockBtn = document.getElementById("lockBtn");
         const clock = document.getElementById("clock");
+        const heroSection = document.querySelector(".hero");
+        const heroImage = document.getElementById("heroImage");
 
         const spotifyInput = document.getElementById("spotifyInput");
         const spotifySave = document.getElementById("spotifySave");
@@ -471,6 +482,7 @@
         };
         const spotifyLinkStorageKey = "personalSiteSpotifyLink";
         const instagramLinkStorageKey = "personalSiteInstagramLink";
+        const heroImageStorageKey = "personalSiteHeroImage";
         const LEGACY_OWNER_PASSWORD = "image-theory-2022";
 
         function isValidEditorPassword(input) {
@@ -488,10 +500,18 @@
                 tool.classList.toggle("editing", enabled);
             });
 
+            heroSection.classList.toggle("editing", enabled);
+
             lockBtn.textContent = enabled ? "End Edit" : "Edit Site";
         }
 
         function promptForEditorToggle() {
+            const isEditing = lockBtn.textContent === "End Edit";
+            if (isEditing) {
+                setEditorMode(false);
+                return;
+            }
+
             const password = window.prompt("Enter password:");
             if (password === null) {
                 return;
@@ -502,8 +522,25 @@
                 return;
             }
 
-            const isEditing = lockBtn.textContent === "End Edit";
-            setEditorMode(!isEditing);
+            setEditorMode(true);
+        }
+
+        function applyHeroImage(file) {
+            if (!file || !file.type.startsWith("image/")) {
+                window.alert("Please drop an image file.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = typeof reader.result === "string" ? reader.result : "";
+                if (!result) {
+                    return;
+                }
+                heroImage.src = result;
+                localStorage.setItem(heroImageStorageKey, result);
+            };
+            reader.readAsDataURL(file);
         }
 
         function saveEditableContent() {
@@ -575,6 +612,29 @@
             });
         });
 
+        heroSection.addEventListener("dragover", (event) => {
+            if (lockBtn.textContent !== "End Edit") {
+                return;
+            }
+            event.preventDefault();
+            heroSection.classList.add("drag-over");
+        });
+
+        heroSection.addEventListener("dragleave", () => {
+            heroSection.classList.remove("drag-over");
+        });
+
+        heroSection.addEventListener("drop", (event) => {
+            heroSection.classList.remove("drag-over");
+            if (lockBtn.textContent !== "End Edit") {
+                return;
+            }
+
+            event.preventDefault();
+            const file = event.dataTransfer && event.dataTransfer.files ? event.dataTransfer.files[0] : null;
+            applyHeroImage(file);
+        });
+
         function setWorkingLink(inputEl, linkEl, labelText) {
             const value = inputEl.value.trim();
 
@@ -635,6 +695,11 @@
         lockBtn.addEventListener("click", promptForEditorToggle);
 
         spotifyEmbed.style.display = "none";
+
+        const savedHeroImage = localStorage.getItem(heroImageStorageKey);
+        if (savedHeroImage) {
+            heroImage.src = savedHeroImage;
+        }
 
         restoreEditableContent();
         restoreSavedLink(
