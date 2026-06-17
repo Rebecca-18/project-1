@@ -483,6 +483,7 @@
         const spotifyLinkStorageKey = "personalSiteSpotifyLink";
         const instagramLinkStorageKey = "personalSiteInstagramLink";
         const heroImageStorageKey = "personalSiteHeroImage";
+        const defaultHeroImageSrc = "IMG_20260610_145045973.jpg";
         const defaultSiteState = {
             content: {
                 aboutBox: "I am Rebecca Rodriguez, and I am going to be a sophomore at Carnegie Vanguard High School.",
@@ -494,7 +495,7 @@
             },
             spotifyUrl: "https://open.spotify.com/playlist/5wXwaCk5lc5VgVxjSTDa22",
             instagramUrl: "https://www.instagram.com/rebecca_1875_",
-            heroImageSrc: ""
+            heroImageSrc: defaultHeroImageSrc
         };
         const LEGACY_OWNER_PASSWORD = "image-theory-2022";
         const syncBlobId = "019ed1f9-25a5-72e9-83be-db15bf4fa3fe";
@@ -565,6 +566,11 @@
             reader.readAsDataURL(file);
         }
 
+        function setHeroImageWithFallback(src) {
+            const candidate = (src || "").trim();
+            heroImage.src = candidate || defaultHeroImageSrc;
+        }
+
         function collectSiteState() {
             const content = {};
             Object.keys(contentKeys).forEach((boxId) => {
@@ -622,9 +628,12 @@
                 localStorage.setItem(instagramLinkStorageKey, state.instagramUrl);
             }
 
-            if (typeof state.heroImageSrc === "string" && state.heroImageSrc) {
-                heroImage.src = state.heroImageSrc;
-                localStorage.setItem(heroImageStorageKey, state.heroImageSrc);
+            if (typeof state.heroImageSrc === "string") {
+                const nextSrc = state.heroImageSrc.trim();
+                setHeroImageWithFallback(nextSrc);
+                if (nextSrc) {
+                    localStorage.setItem(heroImageStorageKey, nextSrc);
+                }
             }
         }
 
@@ -840,9 +849,16 @@
         spotifyEmbed.style.display = "none";
 
         const savedHeroImage = localStorage.getItem(heroImageStorageKey);
-        if (savedHeroImage) {
-            heroImage.src = savedHeroImage;
-        }
+        setHeroImageWithFallback(savedHeroImage || defaultHeroImageSrc);
+
+        heroImage.addEventListener("error", () => {
+            if (heroImage.src.endsWith(defaultHeroImageSrc)) {
+                return;
+            }
+            localStorage.removeItem(heroImageStorageKey);
+            setHeroImageWithFallback(defaultHeroImageSrc);
+            scheduleRemoteSync(true);
+        });
 
         async function initializeSite() {
             restoreEditableContent();
