@@ -399,14 +399,14 @@
             <section class="section-block">
                 <h2 class="subheading">About Me</h2>
                 <div class="edit-box" id="aboutBox" contenteditable="true" spellcheck="true">
-                    Write your intro here.
+                    I am Rebecca Rodriguez, and I am going to be a sophomore at Carnegie Vanguard High School.
                 </div>
             </section>
 
             <section class="section-block" id="interests">
                 <h2 class="subheading">Interests and Hobbies</h2>
                 <div class="edit-box" id="interestsBox" contenteditable="true" spellcheck="true">
-                    Share your interests and hobbies here.
+                    I like singing, listening to music, reading manga, watching anime, eating and sleeping.
                 </div>
                 <div class="link-tool">
                     <input id="spotifyInput" type="url" placeholder="Paste a Spotify playlist link">
@@ -420,28 +420,28 @@
             <section class="section-block" id="favorites">
                 <h2 class="subheading">Favorite Things</h2>
                 <div class="edit-box" id="favoritesBox" contenteditable="true" spellcheck="true">
-                    Add your favorite things here.
+                    My favorite things are spicy carbonara Buldak, HEB California rolls with soy sauce, manga, karaoke, anime, and TWICE.
                 </div>
             </section>
 
             <section class="section-block" id="proud">
                 <h2 class="subheading">Something I'm Proud Of</h2>
                 <div class="edit-box" id="proudBox" contenteditable="true" spellcheck="true">
-                    Write something you are proud of here.
+                    I'm proud of surviving my freshman year at CVHS.
                 </div>
             </section>
 
             <section class="section-block" id="goal">
                 <h2 class="subheading">A Goal or Dream</h2>
                 <div class="edit-box" id="goalBox" contenteditable="true" spellcheck="true">
-                    Describe your goal or dream here.
+                    A goal or dream of mine is to find better academic motivation and grow out my hair.
                 </div>
             </section>
 
             <section class="section-block" id="findme">
                 <h2 class="subheading">Find Me</h2>
                 <div class="edit-box" id="findmeBox" contenteditable="true" spellcheck="true">
-                    Add details about where people can find you.
+                    Find me at my instagram. Follow me :)
                 </div>
                 <div class="link-tool">
                     <input id="instagramInput" type="url" placeholder="Paste your Instagram profile link">
@@ -483,6 +483,19 @@
         const spotifyLinkStorageKey = "personalSiteSpotifyLink";
         const instagramLinkStorageKey = "personalSiteInstagramLink";
         const heroImageStorageKey = "personalSiteHeroImage";
+        const defaultSiteState = {
+            content: {
+                aboutBox: "I am Rebecca Rodriguez, and I am going to be a sophomore at Carnegie Vanguard High School.",
+                interestsBox: "I like singing, listening to music, reading manga, watching anime, eating and sleeping.",
+                favoritesBox: "My favorite things are spicy carbonara Buldak, HEB California rolls with soy sauce, manga, karaoke, anime, and TWICE.",
+                proudBox: "I'm proud of surviving my freshman year at CVHS.",
+                goalBox: "A goal or dream of mine is to find better academic motivation and grow out my hair.",
+                findmeBox: "Find me at my instagram. Follow me :)"
+            },
+            spotifyUrl: "https://open.spotify.com/playlist/5wXwaCk5lc5VgVxjSTDa22",
+            instagramUrl: "https://www.instagram.com/rebecca_1875_",
+            heroImageSrc: ""
+        };
         const LEGACY_OWNER_PASSWORD = "image-theory-2022";
         const syncBlobId = "019ed1f9-25a5-72e9-83be-db15bf4fa3fe";
         const syncApiUrl = "https://jsonblob.com/api/jsonBlob/" + syncBlobId;
@@ -526,7 +539,7 @@
             }
 
             if (!isValidEditorPassword(password)) {
-                window.alert("Incorrect password. Use: 12345678");
+                window.alert("Incorrect password.");
                 return;
             }
 
@@ -853,6 +866,9 @@
                 applySiteState(remoteState);
             } else if (hasLocalState) {
                 // If this device already has progress, keep it and push upstream.
+                scheduleRemoteSync(true);
+            } else {
+                applySiteState(defaultSiteState);
                 scheduleRemoteSync(true);
             }
 
