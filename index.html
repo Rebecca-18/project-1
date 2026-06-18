@@ -381,12 +381,25 @@
             display: grid;
         }
 
-        .spotify-embed {
+        .spotify-shell {
             margin-top: 14px;
+            padding: 10px;
+            border: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+            border-radius: 14px;
+            background: linear-gradient(
+                140deg,
+                color-mix(in srgb, var(--main-bg) 82%, #ffffff 18%) 0%,
+                color-mix(in srgb, var(--main-bg) 66%, #000000 34%) 100%
+            );
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent) inset;
+        }
+
+        .spotify-embed {
             width: 100%;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             min-height: 152px;
+            display: block;
         }
 
         .spotify-note {
@@ -472,7 +485,9 @@
                     <button id="spotifySave">Save Playlist</button>
                 </div>
                 <a class="saved-link" id="spotifyLink" href="#" target="_blank" rel="noopener noreferrer"></a>
-                <iframe class="spotify-embed" id="spotifyEmbed" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                <div class="spotify-shell" id="spotifyShell">
+                    <iframe class="spotify-embed" id="spotifyEmbed" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
                 <p class="spotify-note">For full songs, open the playlist in Spotify and sign in there.</p>
             </section>
 
@@ -527,6 +542,7 @@
         const spotifyInput = document.getElementById("spotifyInput");
         const spotifySave = document.getElementById("spotifySave");
         const spotifyLink = document.getElementById("spotifyLink");
+        const spotifyShell = document.getElementById("spotifyShell");
         const spotifyEmbed = document.getElementById("spotifyEmbed");
         const instagramInput = document.getElementById("instagramInput");
         const instagramSave = document.getElementById("instagramSave");
@@ -819,6 +835,7 @@
                 const embedUrl = spotifyEmbedUrl(spotifyUrl);
                 spotifyEmbed.src = embedUrl;
                 spotifyEmbed.style.display = embedUrl ? "block" : "none";
+                spotifyShell.style.display = embedUrl ? "block" : "none";
                 localStorage.setItem(spotifyLinkStorageKey, state.spotifyUrl);
             }
 
@@ -931,6 +948,7 @@
         themeBtn.addEventListener("click", () => {
             document.body.classList.toggle("dark");
             themeBtn.textContent = document.body.classList.contains("dark") ? "Light" : "Dark";
+            refreshSpotifyEmbedTheme();
         });
 
         colorBtn.addEventListener("click", randomizePalette);
@@ -1012,7 +1030,16 @@
                 return "";
             }
 
-            return "https://open.spotify.com/embed/playlist/" + playlistId + "?utm_source=generator";
+            const embedTheme = document.body.classList.contains("dark") ? "0" : "1";
+            return "https://open.spotify.com/embed/playlist/" + playlistId + "?utm_source=generator&theme=" + embedTheme;
+        }
+
+        function refreshSpotifyEmbedTheme() {
+            const currentUrl = spotifyInput.value.trim();
+            const embedUrl = spotifyEmbedUrl(currentUrl);
+            spotifyEmbed.src = embedUrl;
+            spotifyEmbed.style.display = embedUrl ? "block" : "none";
+            spotifyShell.style.display = embedUrl ? "block" : "none";
         }
 
         spotifySave.addEventListener("click", () => {
@@ -1020,6 +1047,7 @@
             const embedUrl = spotifyEmbedUrl(url);
             spotifyEmbed.src = embedUrl;
             spotifyEmbed.style.display = embedUrl ? "block" : "none";
+            spotifyShell.style.display = embedUrl ? "block" : "none";
             localStorage.setItem(spotifyLinkStorageKey, url);
             scheduleRemoteSync();
         });
@@ -1043,6 +1071,7 @@
         lockBtn.addEventListener("click", promptForEditorToggle);
 
         spotifyEmbed.style.display = "none";
+        spotifyShell.style.display = "none";
 
         localStorage.removeItem(heroImageStorageKey);
         setHeroImageWithFallback(defaultHeroImageSrc);
@@ -1067,6 +1096,7 @@
                     const embedUrl = spotifyEmbedUrl(url);
                     spotifyEmbed.src = embedUrl;
                     spotifyEmbed.style.display = embedUrl ? "block" : "none";
+                    spotifyShell.style.display = embedUrl ? "block" : "none";
                 }
             );
             restoreSavedLink(instagramLinkStorageKey, instagramInput, instagramLink, "Instagram");
