@@ -518,11 +518,35 @@
             return "hsl(" + h + " " + s + "% " + l + "%)";
         }
 
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
         function createPaletteFromHue(hue) {
+            // Use multiple profile ranges so random themes include soft, vivid, and muted palettes.
+            const profileRoll = Math.random();
+            let saturation = 68;
+            let lightLuma = 78;
+            let darkLuma = 14;
+
+            if (profileRoll < 0.35) {
+                saturation = randomInt(72, 90);
+                lightLuma = randomInt(72, 82);
+                darkLuma = randomInt(10, 16);
+            } else if (profileRoll < 0.7) {
+                saturation = randomInt(50, 72);
+                lightLuma = randomInt(74, 86);
+                darkLuma = randomInt(12, 20);
+            } else {
+                saturation = randomInt(24, 48);
+                lightLuma = randomInt(76, 90);
+                darkLuma = randomInt(14, 24);
+            }
+
             return {
                 hue,
-                light: hslColor(hue, 68, 78),
-                dark: hslColor(hue, 70, 14)
+                light: hslColor(hue, saturation, lightLuma),
+                dark: hslColor(hue, Math.min(95, saturation + 4), darkLuma)
             };
         }
 
