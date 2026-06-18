@@ -9,12 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --main-bg: #99acff;
-            --accent: #000727;
+            --theme-light: #99acff;
+            --theme-dark: #000727;
+            --main-bg: var(--theme-light);
+            --accent: var(--theme-dark);
             --sidebar-width: 300px;
             --sidebar-collapsed-width: 78px;
-            --panel-bg: rgba(255, 255, 255, 0.2);
-            --panel-border: rgba(0, 7, 39, 0.35);
+            --panel-bg: color-mix(in srgb, var(--main-bg) 72%, #ffffff 28%);
+            --panel-border: color-mix(in srgb, var(--accent) 38%, transparent);
         }
 
         * {
@@ -38,10 +40,10 @@
         }
 
         body.dark {
-            --main-bg: #000727;
-            --accent: #99acff;
-            --panel-bg: rgba(153, 172, 255, 0.16);
-            --panel-border: rgba(153, 172, 255, 0.5);
+            --main-bg: var(--theme-dark);
+            --accent: var(--theme-light);
+            --panel-bg: color-mix(in srgb, var(--main-bg) 78%, #ffffff 22%);
+            --panel-border: color-mix(in srgb, var(--accent) 52%, transparent);
         }
 
         .layout {
@@ -76,17 +78,18 @@
             top: 16px;
             left: 16px;
             z-index: 15;
-            width: 40px;
-            height: 40px;
-            border: 2px solid var(--accent);
+            width: 32px;
+            height: 32px;
+            border: 1.5px solid var(--accent);
             background: color-mix(in srgb, var(--main-bg) 86%, #ffffff 14%);
             color: var(--accent);
             cursor: pointer;
-            border-radius: 10px;
+            border-radius: 8px;
             display: none;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
+            line-height: 1;
             transition: transform 0.15s ease;
         }
 
@@ -116,10 +119,10 @@
             border-radius: 12px;
             padding: 8px;
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             grid-template-areas:
-                "home theme lock"
-                "clock clock clock";
+                "home theme color lock"
+                "clock clock clock clock";
             align-items: center;
             gap: 8px;
             background: var(--panel-bg);
@@ -136,6 +139,10 @@
 
         #lockBtn {
             grid-area: lock;
+        }
+
+        #colorBtn {
+            grid-area: color;
         }
 
         .first-section button,
@@ -366,6 +373,7 @@
             <div class="first-section">
                 <button id="homeBtn" aria-label="Go to home">Home</button>
                 <button id="themeBtn" aria-label="Toggle dark mode">Dark</button>
+                <button id="colorBtn" aria-label="Randomize color scheme">Color</button>
                 <button id="lockBtn" aria-label="Lock website">Lock</button>
                 <div class="clock" id="clock">--:-- --</div>
             </div>
@@ -459,6 +467,7 @@
         const menuToggle = document.getElementById("menuToggle");
         const homeBtn = document.getElementById("homeBtn");
         const themeBtn = document.getElementById("themeBtn");
+        const colorBtn = document.getElementById("colorBtn");
         const lockBtn = document.getElementById("lockBtn");
         const clock = document.getElementById("clock");
         const heroSection = document.querySelector(".hero");
@@ -483,6 +492,7 @@
         const spotifyLinkStorageKey = "personalSiteSpotifyLink";
         const instagramLinkStorageKey = "personalSiteInstagramLink";
         const heroImageStorageKey = "personalSiteHeroImage";
+        const paletteStorageKey = "personalSitePalette";
         const defaultHeroImageSrc = "pictures/frat%20guy%20me.jpg";
         const defaultSiteState = {
             content: {
@@ -502,6 +512,64 @@
         const syncApiUrl = "https://jsonblob.com/api/jsonBlob/" + syncBlobId;
 
         let syncTimeoutId = null;
+
+        function hslColor(h, s, l) {
+            return "hsl(" + h + " " + s + "% " + l + "%)";
+        }
+
+        function createPaletteFromHue(hue) {
+            return {
+                hue,
+                light: hslColor(hue, 68, 78),
+                dark: hslColor(hue, 70, 14)
+            };
+        }
+
+        function applyPalette(palette) {
+            if (!palette || typeof palette.light !== "string" || typeof palette.dark !== "string") {
+                return;
+            }
+
+            document.documentElement.style.setProperty("--theme-light", palette.light);
+            document.documentElement.style.setProperty("--theme-dark", palette.dark);
+        }
+
+        function restoreSavedPalette() {
+            const raw = localStorage.getItem(paletteStorageKey);
+            if (!raw) {
+                return;
+            }
+
+            try {
+                const palette = JSON.parse(raw);
+                applyPalette(palette);
+            } catch (_err) {
+                localStorage.removeItem(paletteStorageKey);
+            }
+        }
+
+        function randomizePalette() {
+            let hue = Math.floor(Math.random() * 360);
+            const raw = localStorage.getItem(paletteStorageKey);
+
+            if (raw) {
+                try {
+                    const previous = JSON.parse(raw);
+                    if (typeof previous.hue === "number") {
+                        const distance = Math.abs(previous.hue - hue);
+                        if (distance < 20 || distance > 340) {
+                            hue = (hue + 67) % 360;
+                        }
+                    }
+                } catch (_err) {
+                    // Ignore malformed prior palette and continue with the new random hue.
+                }
+            }
+
+            const palette = createPaletteFromHue(hue);
+            applyPalette(palette);
+            localStorage.setItem(paletteStorageKey, JSON.stringify(palette));
+        }
 
         function isValidEditorPassword(input) {
             const normalized = String(input || "").replace(/\s+/g, "").trim();
@@ -730,6 +798,8 @@
             themeBtn.textContent = document.body.classList.contains("dark") ? "Light" : "Dark";
         });
 
+        colorBtn.addEventListener("click", randomizePalette);
+
         document.querySelectorAll(".nav-button").forEach((button) => {
             button.addEventListener("click", () => {
                 const target = document.getElementById(button.dataset.target);
@@ -851,6 +921,7 @@
         });
 
         async function initializeSite() {
+            restoreSavedPalette();
             restoreEditableContent();
             restoreSavedLink(
                 spotifyLinkStorageKey,
