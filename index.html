@@ -257,6 +257,54 @@
             letter-spacing: 0.08em;
             margin-bottom: 8px;
             text-transform: uppercase;
+            position: relative;
+            display: inline-block;
+            isolation: isolate;
+        }
+
+        .title-main::before,
+        .title-main::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120%;
+            height: 175%;
+            border-radius: 999px;
+            border: 2px solid color-mix(in srgb, var(--accent) 36%, transparent);
+            transform: translate(-50%, -50%) scale(0.72);
+            opacity: 0;
+            pointer-events: none;
+            z-index: -1;
+            animation: title-ripple 3.6s ease-out infinite;
+        }
+
+        .title-main::after {
+            animation-delay: 1.8s;
+        }
+
+        @keyframes title-ripple {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.72);
+            }
+
+            18% {
+                opacity: 0.55;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.24);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .title-main::before,
+            .title-main::after {
+                animation: none;
+                opacity: 0;
+            }
         }
 
         .subheading {
@@ -522,6 +570,32 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
+        function hueDistance(a, b) {
+            const distance = Math.abs(a - b) % 360;
+            return Math.min(distance, 360 - distance);
+        }
+
+        function createNeutralPalette() {
+            const pureMonochrome = Math.random() < 0.35;
+            if (pureMonochrome) {
+                return {
+                    family: "neutral",
+                    hue: null,
+                    light: "hsl(0 0% 100%)",
+                    dark: "hsl(0 0% 0%)"
+                };
+            }
+
+            const tintHue = randomInt(0, 359);
+            const tintSat = randomInt(2, 12);
+            return {
+                family: "neutral",
+                hue: tintHue,
+                light: hslColor(tintHue, tintSat, randomInt(95, 99)),
+                dark: hslColor(tintHue, Math.min(18, tintSat + 4), randomInt(4, 10))
+            };
+        }
+
         function createPaletteFromHue(hue) {
             // Use multiple profile ranges so random themes include soft, vivid, and muted palettes.
             const profileRoll = Math.random();
@@ -544,10 +618,23 @@
             }
 
             return {
+                family: "spectral",
                 hue,
                 light: hslColor(hue, saturation, lightLuma),
                 dark: hslColor(hue, Math.min(95, saturation + 4), darkLuma)
             };
+        }
+
+        function createWideRangePalette() {
+            // Explicit rainbow anchors ensure red-orange-yellow-green-blue-indigo-violet-pink appear often,
+            // while continuous hue sampling still provides all in-between tones.
+            const rainbowAnchors = [0, 18, 32, 48, 70, 95, 120, 150, 185, 215, 240, 265, 290, 320, 342];
+            const useAnchor = Math.random() < 0.55;
+            const hue = useAnchor
+                ? rainbowAnchors[randomInt(0, rainbowAnchors.length - 1)]
+                : randomInt(0, 359);
+
+            return createPaletteFromHue(hue);
         }
 
         function applyPalette(palette) {
@@ -574,24 +661,45 @@
         }
 
         function randomizePalette() {
-            let hue = Math.floor(Math.random() * 360);
             const raw = localStorage.getItem(paletteStorageKey);
+            let previousPalette = null;
 
             if (raw) {
                 try {
-                    const previous = JSON.parse(raw);
-                    if (typeof previous.hue === "number") {
-                        const distance = Math.abs(previous.hue - hue);
-                        if (distance < 20 || distance > 340) {
-                            hue = (hue + 67) % 360;
-                        }
-                    }
+                    previousPalette = JSON.parse(raw);
                 } catch (_err) {
                     // Ignore malformed prior palette and continue with the new random hue.
                 }
             }
 
-            const palette = createPaletteFromHue(hue);
+            let palette = null;
+            for (let attempt = 0; attempt < 6; attempt += 1) {
+                const chooseNeutral = Math.random() < 0.22;
+                const candidate = chooseNeutral ? createNeutralPalette() : createWideRangePalette();
+
+                if (!previousPalette) {
+                    palette = candidate;
+                    break;
+                }
+
+                if (candidate.family !== previousPalette.family) {
+                    palette = candidate;
+                    break;
+                }
+
+                if (typeof candidate.hue === "number" && typeof previousPalette.hue === "number") {
+                    if (hueDistance(candidate.hue, previousPalette.hue) >= 18) {
+                        palette = candidate;
+                        break;
+                    }
+                } else {
+                    palette = candidate;
+                    break;
+                }
+
+                palette = candidate;
+            }
+
             applyPalette(palette);
             localStorage.setItem(paletteStorageKey, JSON.stringify(palette));
         }
